@@ -77,8 +77,8 @@ export function FilterBar({ filters: current, tags }: { filters: Filters; tags: 
 
   return (
     <div className="space-y-3 rounded-xl bg-surface p-4 shadow-card">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-        <div className="space-y-1.5 sm:col-span-2">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+        <div className="col-span-2 space-y-1.5">
           <label htmlFor="filter-q" className="block text-sm font-medium">
             Search
           </label>
