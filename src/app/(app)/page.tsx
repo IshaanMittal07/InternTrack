@@ -16,7 +16,7 @@ import {
   type Filters,
 } from "@/lib/domain/filters";
 import { env } from "@/lib/env";
-import { listOpportunities } from "@/server/services/queries";
+import { listOpportunities, listTags } from "@/server/services/queries";
 
 const EMPTY: Record<Category, { title: string; body: string; cta: string }> = {
   applied: {
@@ -42,8 +42,12 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const filters = parseFilters(params);
   const today = todayIn(env().APP_TIMEZONE);
 
-  const opportunities = await listOpportunities(supabase, userId);
+  const [opportunities, tags] = await Promise.all([
+    listOpportunities(supabase, userId),
+    listTags(supabase, userId),
+  ]);
 
+  const tagsById = new Map(tags.map((t) => [t.id, t]));
   const counts = countByCategory(opportunities);
   const visible = applyFilters(opportunities, filters);
   const openId = typeof params.open === "string" ? params.open : undefined;
@@ -68,6 +72,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
               <OpportunityCard
                 key={o.id}
                 opportunity={o}
+                tagsById={tagsById}
                 today={today}
                 href={filtersToQuery(filters, { open: o.id })}
               />
@@ -82,6 +87,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         <OpportunityDrawer
           key={open.id}
           opportunity={open}
+          tags={tags}
           today={today}
           closeHref={filtersToQuery(filters)}
         />

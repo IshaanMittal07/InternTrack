@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { TagPill } from "@/components/tags/tag-pill";
 import { Pill } from "@/components/ui/pill";
 import {
   PRIORITY_LABELS,
@@ -10,14 +11,16 @@ import {
 } from "@/lib/domain/constants";
 import { deadlineLabel, deadlineStatus, formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
 import { contactProgress } from "@/lib/domain/summary";
-import type { OpportunityWithRelations } from "@/lib/domain/types";
+import type { OpportunityWithRelations, Tag } from "@/lib/domain/types";
 
 export function OpportunityCard({
   opportunity: o,
+  tagsById,
   today,
   href,
 }: {
   opportunity: OpportunityWithRelations;
+  tagsById: Map<string, Tag>;
   today: string;
   href: string;
 }) {
@@ -32,6 +35,10 @@ export function OpportunityCard({
     isFollowUpOverdue(c.next_follow_up, today),
   ).length;
   const progress = contactProgress(o.contacts);
+  const tags = o.tagIds
+    .map((id) => tagsById.get(id))
+    .filter((t): t is Tag => Boolean(t))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <li>
@@ -66,6 +73,14 @@ export function OpportunityCard({
           )}
           {o.term && <Pill>{o.term}</Pill>}
         </div>
+
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5" aria-label="Tags">
+            {tags.map((t) => (
+              <TagPill key={t.id} tag={t} />
+            ))}
+          </div>
+        )}
 
         {(progress || overdueFollowUps > 0) && (
           <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">

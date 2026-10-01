@@ -5,10 +5,11 @@ import type { ReactNode } from "react";
 
 import { ContactsSection } from "@/components/contacts/contacts-section";
 import { ReferralSection } from "@/components/contacts/referral-section";
+import { TagPicker } from "@/components/tags/tag-picker";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Modal } from "@/components/ui/modal";
 import { CATEGORY_LABELS } from "@/lib/domain/constants";
-import type { OpportunityWithRelations } from "@/lib/domain/types";
+import type { OpportunityWithRelations, Tag } from "@/lib/domain/types";
 import { deleteOpportunityAction } from "@/server/actions/opportunities";
 
 import { DetailsForm } from "./details-form";
@@ -44,10 +45,12 @@ export function Section({
 /** Side panel with everything about one opportunity. */
 export function OpportunityDrawer({
   opportunity,
+  tags,
   today,
   closeHref,
 }: {
   opportunity: OpportunityWithRelations;
+  tags: Tag[];
   today: string;
   closeHref: string;
 }) {
@@ -60,6 +63,14 @@ export function OpportunityDrawer({
   return (
     <Modal open onClose={close} variant="drawer" title={opportunity.company} description={subtitle}>
       <div className="space-y-6 pb-6">
+        <Section id="drawer-tags" title="Tags">
+          <TagPicker
+            opportunityId={opportunity.id}
+            allTags={tags}
+            selectedIds={opportunity.tagIds}
+          />
+        </Section>
+
         <Section id="drawer-details" title="Details">
           <DetailsForm
             key={`${opportunity.id}-${opportunity.category}`}
