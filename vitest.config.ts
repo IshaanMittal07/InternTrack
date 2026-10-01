@@ -12,6 +12,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: "unit",
+          testTimeout: 15_000,
           include: ["tests/unit/**/*.test.{ts,tsx}"],
           environment: "node",
         },

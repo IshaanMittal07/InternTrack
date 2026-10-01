@@ -4,10 +4,14 @@ const PORT = 3100;
 
 export default defineConfig({
   testDir: "tests/e2e",
+  globalSetup: "./tests/e2e/global-setup.ts",
+  // Tests share one local database and one Mailpit inbox, so run them serially.
+  workers: 1,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"]],
+  timeout: 60_000,
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",

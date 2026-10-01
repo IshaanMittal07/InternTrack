@@ -141,6 +141,21 @@
   --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
 }
 
+@layer components {
+  .input {
+    @apply block w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-base text-ink placeholder:text-ink-muted disabled:opacity-60 sm:text-sm;
+  }
+  .input[aria-invalid="true"] {
+    @apply border-danger;
+  }
+  select.input {
+    @apply pr-8;
+  }
+  textarea.input {
+    @apply min-h-24;
+  }
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;

@@ -1,4 +1,8 @@
-export default function DashboardPage() {
+import { requireUser } from "@/lib/auth/session";
+
+export default async function DashboardPage() {
+  await requireUser();
+
   return (
     <section aria-labelledby="dashboard-heading" className="space-y-6">
       <h1 id="dashboard-heading" className="text-3xl font-semibold sm:text-4xl">

@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { signIn } from "./helpers";
+
 test.describe("security headers and CSP", () => {
   test("pages load with no CSP violations or console errors", async ({ page }) => {
     const problems: string[] = [];
@@ -10,7 +12,7 @@ test.describe("security headers and CSP", () => {
     });
     page.on("pageerror", (err) => problems.push(err.message));
 
-    const response = await page.goto("/");
+    const response = await page.goto("/login");
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
@@ -18,7 +20,9 @@ test.describe("security headers and CSP", () => {
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
 
-    // The not-found page also renders cleanly under the CSP.
+    // Signed-in pages and the not-found page also render cleanly under the CSP.
+    await signIn(page);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     const missing = await page.goto("/this-page-does-not-exist");
     expect(missing?.status()).toBe(404);
     await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();

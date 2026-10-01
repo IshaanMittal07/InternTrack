@@ -1,8 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isAllowedEmail } from "@/lib/auth/allowlist";
+import { env, type Env } from "@/lib/env";
 import { buildCsp, generateNonce } from "@/lib/security/csp";
+import { redirectWithCookies, updateSession } from "@/lib/supabase/proxy";
 
-export function proxy(request: NextRequest) {
+/** Routes reachable without a session. Everything else requires sign-in. */
+const PUBLIC_PATHS = new Set(["/login", "/auth/callback"]);
+
+export async function proxy(request: NextRequest) {
   const nonce = generateNonce();
   const csp = buildCsp({ nonce, isDev: process.env.NODE_ENV === "development" });
 
@@ -12,15 +18,49 @@ export function proxy(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
 
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
-  response.headers.set("Content-Security-Policy", csp);
-  return response;
+  const withCsp = (response: NextResponse) => {
+    response.headers.set("Content-Security-Policy", csp);
+    return response;
+  };
+
+  let config: Env;
+  try {
+    config = env();
+  } catch (error) {
+    // Fail closed: without valid configuration nobody gets in.
+    console.error(error);
+    return new NextResponse("Server misconfigured", { status: 500 });
+  }
+
+  const { pathname } = request.nextUrl;
+  const isPublic = PUBLIC_PATHS.has(pathname);
+  const session = await updateSession(request, requestHeaders, config);
+  const loginUrl = new URL("/login", request.url);
+
+  if (!session.claims) {
+    return isPublic
+      ? withCsp(session.response())
+      : withCsp(redirectWithCookies(session.response(), loginUrl));
+  }
+
+  if (!isAllowedEmail(session.claims.email, config.ALLOWED_EMAIL)) {
+    // A valid session for any other account is ended immediately.
+    await session.supabase.auth.signOut();
+    loginUrl.searchParams.set("error", "signed-out");
+    return withCsp(redirectWithCookies(session.response(), loginUrl));
+  }
+
+  if (pathname === "/login") {
+    return withCsp(redirectWithCookies(session.response(), new URL("/", request.url)));
+  }
+
+  return withCsp(session.response());
 }
 
 export const config = {
   matcher: [
     {
-      // Everything except build assets and public files that need no CSP.
+      // Everything except build assets and public files that need no auth or CSP.
       source: "/((?!_next/static|_next/image|favicon.ico|icon.svg|robots.txt).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
