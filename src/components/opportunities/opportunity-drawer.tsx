@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { ContactsSection } from "@/components/contacts/contacts-section";
+import { ReferralSection } from "@/components/contacts/referral-section";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Modal } from "@/components/ui/modal";
 import { CATEGORY_LABELS } from "@/lib/domain/constants";
@@ -72,6 +74,25 @@ export function OpportunityDrawer({
           description={`Currently in ${CATEGORY_LABELS[opportunity.category]}.`}
         >
           <MoveCategory opportunity={opportunity} today={today} />
+        </Section>
+
+        <Section
+          id="drawer-contacts"
+          title="Contacts"
+          description="People to network with for this opportunity."
+        >
+          <ContactsSection
+            opportunityId={opportunity.id}
+            contacts={opportunity.contacts}
+            today={today}
+          />
+        </Section>
+
+        <Section id="drawer-referral" title="Referral">
+          <ReferralSection
+            key={`${opportunity.referral_status}-${opportunity.referred_by_contact_id}`}
+            opportunity={opportunity}
+          />
         </Section>
 
         <Section id="drawer-danger" title="Delete">

@@ -8,7 +8,8 @@ import {
   STAGE_LABELS,
   STAGE_TONES,
 } from "@/lib/domain/constants";
-import { deadlineLabel, deadlineStatus, formatDate } from "@/lib/domain/dates";
+import { deadlineLabel, deadlineStatus, formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
+import { contactProgress } from "@/lib/domain/summary";
 import type { OpportunityWithRelations } from "@/lib/domain/types";
 
 export function OpportunityCard({
@@ -27,6 +28,10 @@ export function OpportunityCard({
       : status === "today" || status === "soon"
         ? "warning"
         : "neutral";
+  const overdueFollowUps = o.contacts.filter((c) =>
+    isFollowUpOverdue(c.next_follow_up, today),
+  ).length;
+  const progress = contactProgress(o.contacts);
 
   return (
     <li>
@@ -61,6 +66,19 @@ export function OpportunityCard({
           )}
           {o.term && <Pill>{o.term}</Pill>}
         </div>
+
+        {(progress || overdueFollowUps > 0) && (
+          <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            {progress && <span className="text-ink-muted">{progress}</span>}
+            {overdueFollowUps > 0 && (
+              <Pill tone="danger">
+                {overdueFollowUps === 1
+                  ? "1 follow-up overdue"
+                  : `${overdueFollowUps} follow-ups overdue`}
+              </Pill>
+            )}
+          </div>
+        )}
       </Link>
     </li>
   );
