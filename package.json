@@ -18,7 +18,9 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "local:setup": "node scripts/local-setup.mjs",
+    "test:all": "npm run test && npm run test:integration && npm run test:e2e"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
