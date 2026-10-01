@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens.
+ *
+ * Raw values live in the `:root` blocks below (light, then warm dark), and the
+ * `@theme` block exposes them to Tailwind as utilities such as `bg-canvas`,
+ * `text-ink`, `bg-accent`. Tailwind's default palette is removed so every
+ * color in the UI comes from a token. Contrast for every text/background pair
+ * is checked in tests/unit/design-tokens.test.ts.
+ */
+
+:root {
+  --canvas: #faf7f2;
+  --surface: #ffffff;
+  --surface-muted: #f3eee6;
+  --ink: #2d2a26;
+  --ink-muted: #625b53;
+  --line: #ebe4da;
+  --line-strong: #8c8378;
+
+  --accent: #c2410c;
+  --accent-hover: #9a3412;
+  --on-accent: #ffffff;
+  --accent-soft: #fbe9df;
+  --accent-text: #9a3412;
+  --focus: #c2410c;
+
+  --success: #3f6b45;
+  --success-soft: #e4eee2;
+  --warning: #7f4f00;
+  --warning-soft: #fcf0d6;
+  --danger: #b42318;
+  --danger-soft: #fdebe8;
+
+  --tag-terracotta-fg: #9a3412;
+  --tag-terracotta-bg: #fbe5da;
+  --tag-sage-fg: #3f6145;
+  --tag-sage-bg: #e3ecdf;
+  --tag-amber-fg: #774c00;
+  --tag-amber-bg: #faebc8;
+  --tag-slate-fg: #3e4c59;
+  --tag-slate-bg: #e3e8ee;
+  --tag-plum-fg: #6b3563;
+  --tag-plum-bg: #f1e2ee;
+  --tag-teal-fg: #1f5f5b;
+  --tag-teal-bg: #dceeec;
+
+  --shadow-card: 0 1px 2px rgb(45 42 38 / 0.04), 0 2px 8px rgb(45 42 38 / 0.06);
+  --shadow-raised: 0 4px 12px rgb(45 42 38 / 0.08), 0 16px 40px rgb(45 42 38 / 0.12);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #1a1714;
+    --surface: #24201c;
+    --surface-muted: #2e2924;
+    --ink: #efe8de;
+    --ink-muted: #b8aea2;
+    --line: #38322c;
+    --line-strong: #857b70;
+
+    --accent: #e8774a;
+    --accent-hover: #f08c62;
+    --on-accent: #1a1714;
+    --accent-soft: #3b261c;
+    --accent-text: #f4a37f;
+    --focus: #f08c62;
+
+    --success: #a8c9a0;
+    --success-soft: #22301f;
+    --warning: #e9c27a;
+    --warning-soft: #3a2e14;
+    --danger: #f2a196;
+    --danger-soft: #3d1f1b;
+
+    --tag-terracotta-fg: #f5b293;
+    --tag-terracotta-bg: #43271b;
+    --tag-sage-fg: #b5d1ac;
+    --tag-sage-bg: #263224;
+    --tag-amber-fg: #eecb85;
+    --tag-amber-bg: #3e3017;
+    --tag-slate-fg: #bcc8d4;
+    --tag-slate-bg: #28313a;
+    --tag-plum-fg: #e1b6d8;
+    --tag-plum-bg: #3a2536;
+    --tag-teal-fg: #9fd6d0;
+    --tag-teal-bg: #1c3634;
+
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.25);
+    --shadow-raised: 0 4px 12px rgb(0 0 0 / 0.35), 0 16px 40px rgb(0 0 0 / 0.45);
+
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-focus: var(--focus);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  --color-tag-terracotta-fg: var(--tag-terracotta-fg);
+  --color-tag-terracotta-bg: var(--tag-terracotta-bg);
+  --color-tag-sage-fg: var(--tag-sage-fg);
+  --color-tag-sage-bg: var(--tag-sage-bg);
+  --color-tag-amber-fg: var(--tag-amber-fg);
+  --color-tag-amber-bg: var(--tag-amber-bg);
+  --color-tag-slate-fg: var(--tag-slate-fg);
+  --color-tag-slate-bg: var(--tag-slate-bg);
+  --color-tag-plum-fg: var(--tag-plum-fg);
+  --color-tag-plum-bg: var(--tag-plum-bg);
+  --color-tag-teal-fg: var(--tag-teal-fg);
+  --color-tag-teal-bg: var(--tag-teal-bg);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  /* A clearly visible focus ring for keyboard users, never for mouse clicks. */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
