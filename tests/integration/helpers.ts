@@ -78,8 +78,8 @@ export async function signedInClient(email: string): Promise<Db> {
   return client;
 }
 
-export function must<T>(result: { data: T | null; error: unknown }): T {
+export function must<T>(result: { data: T; error: unknown }): NonNullable<T> {
   if (result.error) throw result.error;
-  if (result.data === null) throw new Error("Expected data");
+  if (result.data === null || result.data === undefined) throw new Error("Expected data");
   return result.data;
 }
