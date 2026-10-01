@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { CategoryTabs } from "@/components/dashboard/category-tabs";
+import { FilterBar } from "@/components/dashboard/filter-bar";
+import { SummaryStrip } from "@/components/dashboard/summary-strip";
 import { NewOpportunityButton } from "@/components/opportunities/new-opportunity-button";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
 import { OpportunityDrawer } from "@/components/opportunities/opportunity-drawer";
@@ -15,6 +17,7 @@ import {
   parseFilters,
   type Filters,
 } from "@/lib/domain/filters";
+import { computeSummary } from "@/lib/domain/summary";
 import { env } from "@/lib/env";
 import { listOpportunities, listTags } from "@/server/services/queries";
 
@@ -48,6 +51,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   ]);
 
   const tagsById = new Map(tags.map((t) => [t.id, t]));
+  const summary = computeSummary(opportunities, tags, today);
   const counts = countByCategory(opportunities);
   const visible = applyFilters(opportunities, filters);
   const openId = typeof params.open === "string" ? params.open : undefined;
@@ -63,7 +67,9 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         <NewOpportunityButton key={filters.tab} defaultCategory={filters.tab} today={today} />
       </div>
 
+      <SummaryStrip summary={summary} filters={filters} />
       <CategoryTabs filters={filters} counts={counts} />
+      <FilterBar key={filters.tab} filters={filters} tags={tags} />
 
       <section aria-label="Opportunities" aria-live="polite">
         {visible.length > 0 ? (
