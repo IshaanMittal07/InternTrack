@@ -44,6 +44,7 @@ test("full flow: create, contact, spoken-with, tags, tag filter, move to Applied
   const create = page.getByRole("dialog", { name: "Add opportunity" });
   await create.getByLabel("Company").fill("Quantinuum");
   await create.getByLabel("Role").fill("Quantum Software Intern");
+  await create.getByLabel("Posting notes").fill("Applications close on October 31.");
   await create.getByRole("button", { name: "Save opportunity" }).click();
 
   // The new opportunity opens in the drawer.
@@ -109,6 +110,7 @@ test("full flow: create, contact, spoken-with, tags, tag filter, move to Applied
   const appliedCard = page.getByRole("region", { name: "Opportunities" }).getByRole("listitem");
   await expect(appliedCard).toHaveCount(1);
   await expect(appliedCard.first()).toContainText("Submitted");
+  await expect(appliedCard.first()).toContainText("Applications close on October 31.");
   await expect(page.getByRole("link", { name: /^Applied/ })).toContainText("1");
 
   expect(problems).toEqual([]);

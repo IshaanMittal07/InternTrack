@@ -74,6 +74,12 @@ export function OpportunityCard({
           {o.term && <Pill>{o.term}</Pill>}
         </div>
 
+        {o.posting_notes && (
+          <p className="line-clamp-3 whitespace-pre-line break-words text-sm text-ink-muted">
+            {o.posting_notes}
+          </p>
+        )}
+
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5" aria-label="Tags">
             {tags.map((t) => (
