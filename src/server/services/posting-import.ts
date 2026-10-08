@@ -26,7 +26,7 @@ function isPublicAddress(address: string): boolean {
 
 export async function fetchPostingHtml(source: string): Promise<string> {
   const url = new URL(source);
-  if (url.protocol !== "https:" || url.username || url.password) {
+  if (url.protocol !== "https:" || (url.port && url.port !== "443") || url.username || url.password) {
     throw new Error("Use a public HTTPS posting link.");
   }
   if (

@@ -39,7 +39,12 @@ describe("parsePostingHtml", () => {
     });
   });
 
-  it.each(["http://example.com/job", "https://127.0.0.1", "https://localhost/job"])(
+  it.each([
+    "http://example.com/job",
+    "https://127.0.0.1",
+    "https://localhost/job",
+    "https://example.com:8443/job",
+  ])(
     "refuses unsafe URL %s without fetching it",
     async (url) => {
       await expect(fetchPostingHtml(url)).rejects.toThrow();
