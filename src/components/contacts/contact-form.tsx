@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { FormStatus } from "@/components/ui/form-status";
 import { useFormAction } from "@/components/ui/use-form-action";
+import { OUTREACH_LABELS, OUTREACH_STATUSES } from "@/lib/domain/constants";
 import { contactLabel } from "@/lib/domain/contact-label";
 import type { Contact } from "@/lib/domain/types";
 import { createContactAction, updateContactAction } from "@/server/actions/contacts";
@@ -85,6 +86,19 @@ export function ContactForm({
             autoComplete="off"
             className="input"
           />
+        </Field>
+        <Field id={id("outreach_status")} label="Message status" error={errors.outreach_status}>
+          <select
+            {...aria("outreach_status")}
+            defaultValue={values.outreach_status ?? "not_sent"}
+            className="input"
+          >
+            {OUTREACH_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {OUTREACH_LABELS[s]}
+              </option>
+            ))}
+          </select>
         </Field>
         <Field id={id("last_contacted")} label="Last contacted" error={errors.last_contacted}>
           <input

@@ -119,6 +119,7 @@ function EmptyState({ filters, total, today }: { filters: Filters; total: number
             stage: null,
             referral: null,
             priority: null,
+            outreach: null,
             tags: [],
           })}
           scroll={false}

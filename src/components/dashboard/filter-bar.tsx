@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 
 import {
+  OUTREACH_LABELS,
+  OUTREACH_STATUSES,
   PRIORITIES,
   PRIORITY_LABELS,
   REFERRAL_LABELS,
@@ -77,7 +79,7 @@ export function FilterBar({ filters: current, tags }: { filters: Filters; tags: 
 
   return (
     <div className="space-y-3 rounded-xl bg-surface p-4 shadow-card">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-7">
         <div className="col-span-2 space-y-1.5">
           <label htmlFor="filter-q" className="block text-sm font-medium">
             Search
@@ -115,6 +117,13 @@ export function FilterBar({ filters: current, tags }: { filters: Filters; tags: 
           value={filters.priority ?? ""}
           onChange={(v) => update({ priority: (v || null) as Filters["priority"] })}
           options={PRIORITIES.map((p) => [p, PRIORITY_LABELS[p].replace(" priority", "")])}
+        />
+        <Select
+          id="filter-outreach"
+          label="Messages"
+          value={filters.outreach ?? ""}
+          onChange={(v) => update({ outreach: (v || null) as Filters["outreach"] })}
+          options={OUTREACH_STATUSES.map((s) => [s, OUTREACH_LABELS[s].replace("Message ", "")])}
         />
         <Select
           id="filter-sort"

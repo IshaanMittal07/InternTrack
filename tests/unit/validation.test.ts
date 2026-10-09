@@ -170,6 +170,7 @@ describe("contactSchema", () => {
         linkedin_url: "https://www.linkedin.com/in/jane",
         email: "Jane@Example.com",
         has_spoken: "on",
+        outreach_status: "read",
         last_contacted: "2026-09-01",
         next_follow_up: "2026-09-08",
         notes: "",
@@ -180,6 +181,7 @@ describe("contactSchema", () => {
       linkedin_url: "https://www.linkedin.com/in/jane",
       email: "jane@example.com",
       has_spoken: true,
+      outreach_status: "read",
       last_contacted: "2026-09-01",
       next_follow_up: "2026-09-08",
       notes: null,
@@ -246,5 +248,18 @@ describe("jobBoardSchema", () => {
     expect(jobBoardSchema.safeParse({ name: "x".repeat(61), url: "https://x.com" }).success).toBe(
       false,
     );
+  });
+});
+
+describe("contactSchema outreach_status", () => {
+  it("defaults to not_sent and accepts every status", () => {
+    expect(contactSchema.parse({}).outreach_status).toBe("not_sent");
+    for (const status of ["not_sent", "sent", "read", "replied"]) {
+      expect(contactSchema.parse({ outreach_status: status }).outreach_status).toBe(status);
+    }
+  });
+
+  it("rejects unknown statuses", () => {
+    expect(contactSchema.safeParse({ outreach_status: "ghosted" }).success).toBe(false);
   });
 });

@@ -5,6 +5,7 @@ import { useOptimistic, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Pill } from "@/components/ui/pill";
+import { OUTREACH_LABELS, OUTREACH_TONES } from "@/lib/domain/constants";
 import { contactLabel } from "@/lib/domain/contact-label";
 import { formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
 import { contactProgress } from "@/lib/domain/summary";
@@ -131,6 +132,9 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
       </div>
 
       <div className="flex flex-wrap gap-1.5">
+        <Pill tone={OUTREACH_TONES[contact.outreach_status]}>
+          {OUTREACH_LABELS[contact.outreach_status]}
+        </Pill>
         {contact.last_contacted && <Pill>Last contacted {formatDate(contact.last_contacted)}</Pill>}
         {contact.next_follow_up && (
           <Pill tone={overdue ? "danger" : "neutral"}>

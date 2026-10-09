@@ -3,6 +3,8 @@ import Link from "next/link";
 import { TagPill } from "@/components/tags/tag-pill";
 import { Pill } from "@/components/ui/pill";
 import {
+  OUTREACH_LABELS,
+  OUTREACH_TONES,
   PRIORITY_LABELS,
   REFERRAL_LABELS,
   REFERRAL_TONES,
@@ -10,7 +12,7 @@ import {
   STAGE_TONES,
 } from "@/lib/domain/constants";
 import { deadlineLabel, deadlineStatus, formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
-import { contactProgress } from "@/lib/domain/summary";
+import { contactProgress, outreachCounts } from "@/lib/domain/summary";
 import type { OpportunityWithRelations, Tag } from "@/lib/domain/types";
 
 export function OpportunityCard({
@@ -35,6 +37,7 @@ export function OpportunityCard({
     isFollowUpOverdue(c.next_follow_up, today),
   ).length;
   const progress = contactProgress(o.contacts);
+  const outreach = outreachCounts(o.contacts);
   const tags = o.tagIds
     .map((id) => tagsById.get(id))
     .filter((t): t is Tag => Boolean(t))
@@ -84,6 +87,17 @@ export function OpportunityCard({
           <div className="flex flex-wrap gap-1.5" aria-label="Tags">
             {tags.map((t) => (
               <TagPill key={t.id} tag={t} />
+            ))}
+          </div>
+        )}
+
+        {outreach.length > 0 && (
+          <div className="flex flex-wrap gap-1.5" aria-label="Contact messages">
+            {outreach.map(({ status, count }) => (
+              <Pill key={status} tone={OUTREACH_TONES[status]}>
+                {OUTREACH_LABELS[status]}
+                {count > 1 ? ` × ${count}` : ""}
+              </Pill>
             ))}
           </div>
         )}
