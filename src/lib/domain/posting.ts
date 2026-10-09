@@ -69,10 +69,19 @@ function dateOnly(value: unknown): string | undefined {
   return Number.isNaN(date.valueOf()) ? undefined : date.toISOString().slice(0, 10);
 }
 
+/** Text of an HTML fragment, keeping a space where line breaks and blocks end. */
+function htmlToText(html: string): string {
+  return load(html.replace(/<(?:br|\/p|\/div|\/li|\/h[1-6])\b[^>]*>/gi, " $&")).text();
+}
+
 function cleanDescription(value: unknown): string | undefined {
   const source = text(value);
   if (!source) return undefined;
-  const content = load(source).text().replace(/\s+/g, " ").trim();
+  let content = htmlToText(source);
+  // Some sites (LinkedIn, Greenhouse) HTML-escape the description HTML, so
+  // one pass leaves literal tags behind; strip them with a second pass.
+  if (/<[a-z/][^>]*>/i.test(content)) content = htmlToText(content);
+  content = content.replace(/\s+/g, " ").trim();
   return content.slice(0, 10_000) || undefined;
 }
 
@@ -110,5 +119,45 @@ export function parsePostingHtml(html: string): PostingDetails {
   if (company) result.company = company;
   if (role) result.role_title = role;
   if (notes) result.posting_notes = cleanDescription(notes);
+  return result;
+}
+const GREENHOUSE_HOSTS = new Set(["boards.greenhouse.io", "job-boards.greenhouse.io"]);
+
+/**
+ * The public Greenhouse job API URL for a Greenhouse posting link, or null.
+ * Handles `/{board}/jobs/{id}` and `/embed/job_app?for={board}&token={id}`.
+ */
+export function greenhouseApiUrl(source: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(source);
+  } catch {
+    return null;
+  }
+  if (!GREENHOUSE_HOSTS.has(url.hostname)) return null;
+
+  const path = url.pathname.match(/^\/([\w-]+)\/jobs\/(\d+)/);
+  const board = path?.[1] ?? url.searchParams.get("for");
+  const id = path?.[2] ?? url.searchParams.get("token");
+  if (!board || !id || !/^[\w-]+$/.test(board) || !/^\d+$/.test(id)) return null;
+  return `https://boards-api.greenhouse.io/v1/boards/${board}/jobs/${id}`;
+}
+
+/** Maps a Greenhouse job API response to posting details. */
+export function parseGreenhouseJob(value: unknown): PostingDetails {
+  const job = asRecord(value);
+  if (!job) return {};
+
+  const result: PostingDetails = {};
+  const company = text(job.company_name);
+  const role = text(job.title);
+  const location = text(asRecord(job.location)?.name);
+  const deadline = dateOnly(job.application_deadline);
+  const notes = cleanDescription(job.content);
+  if (company) result.company = company;
+  if (role) result.role_title = role;
+  if (location) result.location = location;
+  if (deadline) result.deadline = deadline;
+  if (notes) result.posting_notes = notes;
   return result;
 }

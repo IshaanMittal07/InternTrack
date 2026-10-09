@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 import { requireUser } from "@/lib/auth/session";
-import { parsePostingHtml } from "@/lib/domain/posting";
-import { fetchPostingHtml } from "@/server/services/posting-import";
+import { fetchPostingDetails } from "@/server/services/posting-import";
 
 export const runtime = "nodejs";
 
@@ -24,7 +23,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const details = parsePostingHtml(await fetchPostingHtml(input.data.url));
+    const details = await fetchPostingDetails(input.data.url);
     return Response.json({ details });
   } catch (error) {
     return Response.json(
