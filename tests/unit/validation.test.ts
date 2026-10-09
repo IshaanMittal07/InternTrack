@@ -171,7 +171,6 @@ describe("contactSchema", () => {
         email: "Jane@Example.com",
         has_spoken: "on",
         outreach_status: "read",
-        linkedin_connection: "sent",
         last_contacted: "2026-09-01",
         next_follow_up: "2026-09-08",
         notes: "",
@@ -183,7 +182,6 @@ describe("contactSchema", () => {
       email: "jane@example.com",
       has_spoken: true,
       outreach_status: "read",
-      linkedin_connection: null,
       last_contacted: "2026-09-01",
       next_follow_up: "2026-09-08",
       notes: null,
@@ -266,21 +264,24 @@ describe("contactSchema outreach_status", () => {
   });
 });
 
-describe("contactSchema linkedin_connection", () => {
-  it("defaults to not_sent and keeps the value while no message is sent", () => {
-    expect(contactSchema.parse({}).linkedin_connection).toBe("not_sent");
-    expect(contactSchema.parse({ linkedin_connection: "sent" }).linkedin_connection).toBe("sent");
-  });
+describe("opportunitySchema linkedin_connection", () => {
+  const base = { category: "planning", company: "Acme" };
 
-  it("clears the LinkedIn status once a message is sent", () => {
-    for (const outreach_status of ["sent", "read", "replied"]) {
+  it("is optional and accepts sent or not_sent", () => {
+    expect(opportunitySchema.parse(base).linkedin_connection).toBeNull();
+    expect(
+      opportunitySchema.parse({ ...base, linkedin_connection: "" }).linkedin_connection,
+    ).toBeNull();
+    for (const value of ["sent", "not_sent"]) {
       expect(
-        contactSchema.parse({ outreach_status, linkedin_connection: "sent" }).linkedin_connection,
-      ).toBeNull();
+        opportunitySchema.parse({ ...base, linkedin_connection: value }).linkedin_connection,
+      ).toBe(value);
     }
   });
 
   it("rejects unknown values", () => {
-    expect(contactSchema.safeParse({ linkedin_connection: "pending" }).success).toBe(false);
+    expect(opportunitySchema.safeParse({ ...base, linkedin_connection: "pending" }).success).toBe(
+      false,
+    );
   });
 });

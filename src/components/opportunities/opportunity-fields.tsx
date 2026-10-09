@@ -7,6 +7,7 @@ import type { FieldErrors } from "@/lib/action-result";
 import {
   CATEGORIES,
   CATEGORY_LABELS,
+  LINKEDIN_CONNECTIONS,
   PRIORITIES,
   PRIORITY_LABELS,
   STAGES,
@@ -28,6 +29,7 @@ type Values = Partial<
     | "date_applied"
     | "application_stage"
     | "priority"
+    | "linkedin_connection"
     | "notes"
   >
 >;
@@ -283,6 +285,30 @@ export function OpportunityFields({
           {PRIORITIES.map((p) => (
             <option key={p} value={p}>
               {PRIORITY_LABELS[p].replace(" priority", "")}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field
+        id={id("linkedin_connection")}
+        label="LinkedIn connection"
+        hint="The tag is removed once you message a contact for this posting."
+        error={errors.linkedin_connection}
+      >
+        <select
+          {...aria("linkedin_connection")}
+          aria-describedby={
+            errors.linkedin_connection
+              ? `${id("linkedin_connection")}-error`
+              : `${id("linkedin_connection")}-hint`
+          }
+          defaultValue={values.linkedin_connection ?? ""}
+          className="input"
+        >
+          <option value="">Not tracked</option>
+          {LINKEDIN_CONNECTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s === "sent" ? "Connection sent" : "Connection unsent"}
             </option>
           ))}
         </select>

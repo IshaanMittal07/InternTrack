@@ -5,15 +5,10 @@ import { useOptimistic, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Pill } from "@/components/ui/pill";
-import {
-  LINKEDIN_LABELS,
-  LINKEDIN_TONES,
-  OUTREACH_LABELS,
-  OUTREACH_TONES,
-} from "@/lib/domain/constants";
+import { OUTREACH_LABELS, OUTREACH_TONES } from "@/lib/domain/constants";
 import { contactLabel } from "@/lib/domain/contact-label";
 import { formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
-import { activeLinkedinConnection, contactProgress } from "@/lib/domain/summary";
+import { contactProgress } from "@/lib/domain/summary";
 import type { Contact } from "@/lib/domain/types";
 import { deleteContactAction, setContactSpokenAction } from "@/server/actions/contacts";
 
@@ -70,7 +65,6 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
   const [, startTransition] = useTransition();
   const overdue = isFollowUpOverdue(contact.next_follow_up, today);
   const label = contactLabel(contact);
-  const linkedin = activeLinkedinConnection(contact);
 
   function toggleSpoken() {
     setError(null);
@@ -141,7 +135,6 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
         <Pill tone={OUTREACH_TONES[contact.outreach_status]}>
           {OUTREACH_LABELS[contact.outreach_status]}
         </Pill>
-        {linkedin && <Pill tone={LINKEDIN_TONES[linkedin]}>{LINKEDIN_LABELS[linkedin]}</Pill>}
         {contact.last_contacted && <Pill>Last contacted {formatDate(contact.last_contacted)}</Pill>}
         {contact.next_follow_up && (
           <Pill tone={overdue ? "danger" : "neutral"}>

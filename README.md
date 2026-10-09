@@ -17,9 +17,9 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
   due this week, deadlines in the next 14 days, and a count per tag (click one to filter).
 - **Message status per contact:** not sent, sent, read or replied. Cards show each status,
   and the **Messages** filter finds opportunities with a contact at that status.
-- **LinkedIn connections per contact:** connection sent or not sent, with a LinkedIn section
-  on the dashboard (click a count to filter). The LinkedIn tag disappears once you send
-  that contact a message.
+- **LinkedIn connection per posting:** mark a posting's LinkedIn connection as sent or
+  unsent in its form; the tag shows on the card and can be filtered, and disappears once
+  you message one of its contacts.
 - **Job boards:** save quick links to the sites you search (e.g. Glassdoor, InternInsider)
   right on the dashboard.
 - **Cards** show company, role, stage, deadline, referral status, tags, and contact

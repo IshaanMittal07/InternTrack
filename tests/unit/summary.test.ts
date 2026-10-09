@@ -4,7 +4,6 @@ import {
   activeLinkedinConnection,
   computeSummary,
   contactProgress,
-  linkedinCounts,
   outreachCounts,
 } from "@/lib/domain/summary";
 
@@ -97,30 +96,26 @@ describe("outreachCounts", () => {
   });
 });
 
-describe("LinkedIn connections", () => {
-  it("only applies while no message has been sent", () => {
+describe("activeLinkedinConnection", () => {
+  it("shows the posting's status while no contact has been messaged", () => {
+    expect(activeLinkedinConnection({ linkedin_connection: "sent", contacts: [] })).toBe("sent");
     expect(
-      activeLinkedinConnection({ linkedin_connection: "sent", outreach_status: "not_sent" }),
-    ).toBe("sent");
-    for (const outreach_status of ["sent", "read", "replied"] as const) {
-      expect(activeLinkedinConnection({ linkedin_connection: "sent", outreach_status })).toBeNull();
-    }
-    expect(
-      activeLinkedinConnection({ linkedin_connection: null, outreach_status: "not_sent" }),
-    ).toBeNull();
+      activeLinkedinConnection({
+        linkedin_connection: "not_sent",
+        contacts: [{ outreach_status: "not_sent" }],
+      }),
+    ).toBe("not_sent");
+    expect(activeLinkedinConnection({ linkedin_connection: null, contacts: [] })).toBeNull();
   });
 
-  it("counts contacts per connection status, ignoring messaged contacts", () => {
-    expect(
-      linkedinCounts([
-        { linkedin_connection: "sent", outreach_status: "not_sent" },
-        { linkedin_connection: "sent", outreach_status: "replied" },
-        { linkedin_connection: "not_sent", outreach_status: "not_sent" },
-        { linkedin_connection: "sent", outreach_status: "not_sent" },
-      ]),
-    ).toEqual([
-      { status: "not_sent", count: 1 },
-      { status: "sent", count: 2 },
-    ]);
+  it("removes the tag once any contact has been messaged", () => {
+    for (const outreach_status of ["sent", "read", "replied"] as const) {
+      expect(
+        activeLinkedinConnection({
+          linkedin_connection: "sent",
+          contacts: [{ outreach_status: "not_sent" }, { outreach_status }],
+        }),
+      ).toBeNull();
+    }
   });
 });

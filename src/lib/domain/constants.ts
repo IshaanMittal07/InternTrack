@@ -100,7 +100,7 @@ export const OUTREACH_TONES: Record<OutreachStatus, PillTone> = {
 };
 
 export const LINKEDIN_LABELS: Record<LinkedinConnection, string> = {
-  not_sent: "LinkedIn: connection not sent",
+  not_sent: "LinkedIn: connection unsent",
   sent: "LinkedIn: connection sent",
 };
 

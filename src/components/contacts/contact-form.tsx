@@ -1,17 +1,12 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { FormStatus } from "@/components/ui/form-status";
 import { useFormAction } from "@/components/ui/use-form-action";
-import {
-  LINKEDIN_CONNECTIONS,
-  OUTREACH_LABELS,
-  OUTREACH_STATUSES,
-  type OutreachStatus,
-} from "@/lib/domain/constants";
+import { OUTREACH_LABELS, OUTREACH_STATUSES } from "@/lib/domain/constants";
 import { contactLabel } from "@/lib/domain/contact-label";
 import type { Contact } from "@/lib/domain/types";
 import { createContactAction, updateContactAction } from "@/server/actions/contacts";
@@ -29,7 +24,6 @@ export function ContactForm({
 }) {
   const prefix = useId();
   const values: Partial<Contact> = mode.kind === "edit" ? mode.contact : {};
-  const [outreach, setOutreach] = useState<OutreachStatus>(values.outreach_status ?? "not_sent");
   const form = useFormAction<unknown>(
     (formData) =>
       mode.kind === "create"
@@ -96,8 +90,7 @@ export function ContactForm({
         <Field id={id("outreach_status")} label="Message status" error={errors.outreach_status}>
           <select
             {...aria("outreach_status")}
-            value={outreach}
-            onChange={(e) => setOutreach(e.target.value as OutreachStatus)}
+            defaultValue={values.outreach_status ?? "not_sent"}
             className="input"
           >
             {OUTREACH_STATUSES.map((s) => (
@@ -107,26 +100,6 @@ export function ContactForm({
             ))}
           </select>
         </Field>
-        {/* Once a message is sent, the LinkedIn connection no longer applies. */}
-        {outreach === "not_sent" && (
-          <Field
-            id={id("linkedin_connection")}
-            label="LinkedIn connection"
-            error={errors.linkedin_connection}
-          >
-            <select
-              {...aria("linkedin_connection")}
-              defaultValue={values.linkedin_connection ?? "not_sent"}
-              className="input"
-            >
-              {LINKEDIN_CONNECTIONS.map((s) => (
-                <option key={s} value={s}>
-                  {s === "sent" ? "Connection sent" : "Connection not sent"}
-                </option>
-              ))}
-            </select>
-          </Field>
-        )}
         <Field id={id("last_contacted")} label="Last contacted" error={errors.last_contacted}>
           <input
             {...aria("last_contacted")}

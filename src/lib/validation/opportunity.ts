@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-import { CATEGORIES, PRIORITIES, REFERRAL_STATUSES, STAGES } from "@/lib/domain/constants";
+import {
+  CATEGORIES,
+  LINKEDIN_CONNECTIONS,
+  PRIORITIES,
+  REFERRAL_STATUSES,
+  STAGES,
+} from "@/lib/domain/constants";
 
 import {
   optionalDate,
@@ -29,6 +35,7 @@ export const opportunitySchema = z
     date_applied: optionalDate,
     application_stage: optionalEnum(STAGES),
     priority: optionalEnum(PRIORITIES).transform((p) => p ?? "medium"),
+    linkedin_connection: optionalEnum(LINKEDIN_CONNECTIONS).transform((v) => v ?? null),
     notes: optionalText(20_000, "Notes"),
   })
   .superRefine((value, ctx) => {

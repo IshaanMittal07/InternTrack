@@ -14,7 +14,7 @@ import {
   STAGE_TONES,
 } from "@/lib/domain/constants";
 import { deadlineLabel, deadlineStatus, formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
-import { contactProgress, linkedinCounts, outreachCounts } from "@/lib/domain/summary";
+import { activeLinkedinConnection, contactProgress, outreachCounts } from "@/lib/domain/summary";
 import type { OpportunityWithRelations, Tag } from "@/lib/domain/types";
 
 export function OpportunityCard({
@@ -40,7 +40,7 @@ export function OpportunityCard({
   ).length;
   const progress = contactProgress(o.contacts);
   const outreach = outreachCounts(o.contacts);
-  const linkedin = linkedinCounts(o.contacts);
+  const linkedin = activeLinkedinConnection(o);
   const tags = o.tagIds
     .map((id) => tagsById.get(id))
     .filter((t): t is Tag => Boolean(t))
@@ -78,6 +78,7 @@ export function OpportunityCard({
             </Pill>
           )}
           {o.term && <Pill>{o.term}</Pill>}
+          {linkedin && <Pill tone={LINKEDIN_TONES[linkedin]}>{LINKEDIN_LABELS[linkedin]}</Pill>}
         </div>
 
         {o.posting_notes && (
@@ -99,17 +100,6 @@ export function OpportunityCard({
             {outreach.map(({ status, count }) => (
               <Pill key={status} tone={OUTREACH_TONES[status]}>
                 {OUTREACH_LABELS[status]}
-                {count > 1 ? ` × ${count}` : ""}
-              </Pill>
-            ))}
-          </div>
-        )}
-
-        {linkedin.length > 0 && (
-          <div className="flex flex-wrap gap-1.5" aria-label="LinkedIn connections">
-            {linkedin.map(({ status, count }) => (
-              <Pill key={status} tone={LINKEDIN_TONES[status]}>
-                {LINKEDIN_LABELS[status]}
                 {count > 1 ? ` × ${count}` : ""}
               </Pill>
             ))}

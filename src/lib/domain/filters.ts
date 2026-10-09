@@ -124,7 +124,7 @@ function byAddedDesc(a: OpportunityWithRelations, b: OpportunityWithRelations): 
 
 /**
  * Applies every filter together (AND), with tags matching ANY selected tag
- * and the message and LinkedIn statuses matching ANY contact,
+ * and the message status matching ANY contact,
  * then sorts. Does not mutate the input.
  */
 export function applyFilters(
@@ -147,10 +147,7 @@ export function applyFilters(
     if (filters.outreach && !o.contacts.some((c) => c.outreach_status === filters.outreach)) {
       return false;
     }
-    if (
-      filters.linkedin &&
-      !o.contacts.some((c) => activeLinkedinConnection(c) === filters.linkedin)
-    ) {
+    if (filters.linkedin && activeLinkedinConnection(o) !== filters.linkedin) {
       return false;
     }
     if (selectedTags.size && !o.tagIds.some((id) => selectedTags.has(id))) return false;

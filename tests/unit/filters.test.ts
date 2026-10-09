@@ -41,10 +41,8 @@ const opps = [
     priority: "low",
     deadline: "2026-10-05",
     tagIds: [TAG_B],
-    contacts: [
-      makeContact({ outreach_status: "sent" }),
-      makeContact({ linkedin_connection: "sent" }),
-    ],
+    contacts: [makeContact({ outreach_status: "sent" })],
+    linkedin_connection: "sent",
     created_at: "2026-09-03T00:00:00Z",
   }),
   makeOpportunity({
@@ -56,6 +54,7 @@ const opps = [
     priority: "medium",
     deadline: null,
     tagIds: [TAG_A, TAG_C],
+    linkedin_connection: "sent",
     created_at: "2026-09-02T00:00:00Z",
   }),
   makeOpportunity({ company: "Planned Co", category: "planning", tagIds: [TAG_A] }),
@@ -142,15 +141,14 @@ describe("applyFilters", () => {
   it("filters by message status on ANY contact", () => {
     expect(names(f({ outreach: "replied" }))).toEqual(["Quantinuum"]);
     expect(names(f({ outreach: "sent" }))).toEqual(["CrowdStrike"]);
-    expect(names(f({ outreach: "not_sent" }))).toEqual(["CrowdStrike", "Quantinuum"]);
+    expect(names(f({ outreach: "not_sent" }))).toEqual(["Quantinuum"]);
     expect(names(f({ outreach: "read" }))).toEqual([]);
   });
 
-  it("filters by LinkedIn connection, ignoring contacts already messaged", () => {
-    expect(names(f({ linkedin: "sent" }))).toEqual(["CrowdStrike"]);
-    // CrowdStrike's only un-messaged contact has a request sent; Quantinuum's
-    // un-messaged contact doesn't, and its messaged contact no longer counts.
-    expect(names(f({ linkedin: "not_sent" }))).toEqual(["Quantinuum"]);
+  it("filters by the posting's LinkedIn connection, hidden once a contact is messaged", () => {
+    // CrowdStrike also has "sent", but one of its contacts was messaged.
+    expect(names(f({ linkedin: "sent" }))).toEqual(["Nvidia"]);
+    expect(names(f({ linkedin: "not_sent" }))).toEqual([]);
     expect(hasActiveFilters(f({ linkedin: "sent" }))).toBe(true);
   });
 

@@ -133,7 +133,7 @@ export function FilterBar({ filters: current, tags }: { filters: Filters; tags: 
           onChange={(v) => update({ linkedin: (v || null) as Filters["linkedin"] })}
           options={LINKEDIN_CONNECTIONS.map((s) => [
             s,
-            s === "sent" ? "Connection sent" : "Connection not sent",
+            s === "sent" ? "Connection sent" : "Connection unsent",
           ])}
         />
         <Select
