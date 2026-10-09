@@ -7,13 +7,13 @@ export type Database = {
           Tables: {
             "contacts": {
                   Row: {
-                    "created_at": string,"email": string | null,"has_spoken": boolean,"id": string,"last_contacted": string | null,"linkedin_url": string | null,"name": string,"next_follow_up": string | null,"notes": string | null,"opportunity_id": string,"title": string | null,"updated_at": string,"user_id": string
+                    "created_at": string,"email": string | null,"has_spoken": boolean,"id": string,"last_contacted": string | null,"linkedin_url": string | null,"name": string | null,"next_follow_up": string | null,"notes": string | null,"opportunity_id": string,"title": string | null,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "created_at"?: string,"email"?: string | null,"has_spoken"?: boolean,"id"?: string,"last_contacted"?: string | null,"linkedin_url"?: string | null,"name": string,"next_follow_up"?: string | null,"notes"?: string | null,"opportunity_id": string,"title"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"email"?: string | null,"has_spoken"?: boolean,"id"?: string,"last_contacted"?: string | null,"linkedin_url"?: string | null,"name"?: string | null,"next_follow_up"?: string | null,"notes"?: string | null,"opportunity_id": string,"title"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string | null,"has_spoken"?: boolean,"id"?: string,"last_contacted"?: string | null,"linkedin_url"?: string | null,"name"?: string,"next_follow_up"?: string | null,"notes"?: string | null,"opportunity_id"?: string,"title"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"email"?: string | null,"has_spoken"?: boolean,"id"?: string,"last_contacted"?: string | null,"linkedin_url"?: string | null,"name"?: string | null,"next_follow_up"?: string | null,"notes"?: string | null,"opportunity_id"?: string,"title"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {

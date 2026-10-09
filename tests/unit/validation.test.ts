@@ -155,8 +155,9 @@ describe("referralSchema", () => {
 });
 
 describe("contactSchema", () => {
-  it("requires a name", () => {
-    expect(contactSchema.safeParse({ name: "" }).success).toBe(false);
+  it("makes the name optional but length-limited", () => {
+    expect(contactSchema.parse({ name: "" }).name).toBeNull();
+    expect(contactSchema.parse({}).name).toBeNull();
     expect(contactSchema.safeParse({ name: "x".repeat(121) }).success).toBe(false);
   });
 

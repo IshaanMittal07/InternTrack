@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import { optionalDate, optionalEmail, optionalText, optionalUrl, requiredText } from "./common";
+import { optionalDate, optionalEmail, optionalText, optionalUrl } from "./common";
 
 export const contactSchema = z.object({
-  name: requiredText(120, "Name"),
+  name: optionalText(120, "Name"),
   title: optionalText(120, "Title"),
   linkedin_url: optionalUrl,
   email: optionalEmail,

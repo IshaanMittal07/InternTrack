@@ -5,6 +5,7 @@ import { Field } from "@/components/ui/field";
 import { FormStatus } from "@/components/ui/form-status";
 import { useFormAction } from "@/components/ui/use-form-action";
 import { REFERRAL_LABELS, REFERRAL_STATUSES } from "@/lib/domain/constants";
+import { contactLabel } from "@/lib/domain/contact-label";
 import type { OpportunityWithRelations } from "@/lib/domain/types";
 import { setReferralAction } from "@/server/actions/opportunities";
 
@@ -56,8 +57,8 @@ export function ReferralSection({ opportunity }: { opportunity: OpportunityWithR
             <option value="">No one selected</option>
             {opportunity.contacts.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
-                {c.title ? ` (${c.title})` : ""}
+                {contactLabel(c)}
+                {c.name && c.title ? ` (${c.title})` : ""}
               </option>
             ))}
           </select>

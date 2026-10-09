@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { FormStatus } from "@/components/ui/form-status";
 import { useFormAction } from "@/components/ui/use-form-action";
+import { contactLabel } from "@/lib/domain/contact-label";
 import type { Contact } from "@/lib/domain/types";
 import { createContactAction, updateContactAction } from "@/server/actions/contacts";
 
@@ -43,14 +44,13 @@ export function ContactForm({
       onSubmit={form.onSubmit}
       noValidate
       className="space-y-3"
-      aria-label={mode.kind === "create" ? "Add contact" : `Edit ${values.name}`}
+      aria-label={mode.kind === "create" ? "Add contact" : `Edit ${contactLabel(mode.contact)}`}
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field id={id("name")} label="Name" required error={errors.name}>
+        <Field id={id("name")} label="Name" error={errors.name}>
           <input
             {...aria("name")}
             defaultValue={values.name ?? ""}
-            required
             maxLength={120}
             autoComplete="off"
             className="input"
