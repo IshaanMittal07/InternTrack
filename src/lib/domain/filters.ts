@@ -2,17 +2,20 @@ import { z } from "zod";
 
 import {
   CATEGORIES,
+  LINKEDIN_CONNECTIONS,
   OUTREACH_STATUSES,
   PRIORITIES,
   PRIORITY_RANK,
   REFERRAL_STATUSES,
   STAGES,
   type Category,
+  type LinkedinConnection,
   type OutreachStatus,
   type Priority,
   type ReferralStatus,
   type Stage,
 } from "./constants";
+import { activeLinkedinConnection } from "./summary";
 import type { OpportunityWithRelations } from "./types";
 
 export const SORT_KEYS = ["added", "deadline", "priority"] as const;
@@ -30,6 +33,7 @@ export type Filters = {
   referral: ReferralStatus | null;
   priority: Priority | null;
   outreach: OutreachStatus | null;
+  linkedin: LinkedinConnection | null;
   tags: string[];
   sort: SortKey;
 };
@@ -41,6 +45,7 @@ export const DEFAULT_FILTERS: Filters = {
   referral: null,
   priority: null,
   outreach: null,
+  linkedin: null,
   tags: [],
   sort: "added",
 };
@@ -56,6 +61,7 @@ const filtersSchema = z.object({
   referral: z.enum(REFERRAL_STATUSES).nullable().catch(null),
   priority: z.enum(PRIORITIES).nullable().catch(null),
   outreach: z.enum(OUTREACH_STATUSES).nullable().catch(null),
+  linkedin: z.enum(LINKEDIN_CONNECTIONS).nullable().catch(null),
   tags: z.array(z.uuid()).max(50).catch([]),
   sort: z.enum(SORT_KEYS).catch(DEFAULT_FILTERS.sort),
 });
@@ -69,6 +75,7 @@ export function parseFilters(params: SearchParams): Filters {
     referral: first(params.referral) ?? null,
     priority: first(params.priority) ?? null,
     outreach: first(params.outreach) ?? null,
+    linkedin: first(params.linkedin) ?? null,
     tags: rawTags ? [...new Set(rawTags.split(",").filter(Boolean))] : [],
     sort: first(params.sort),
   });
@@ -85,6 +92,7 @@ export function filtersToQuery(filters: Filters, extra: Record<string, string> =
   if (filters.referral) params.set("referral", filters.referral);
   if (filters.priority) params.set("priority", filters.priority);
   if (filters.outreach) params.set("outreach", filters.outreach);
+  if (filters.linkedin) params.set("linkedin", filters.linkedin);
   if (filters.tags.length) params.set("tags", filters.tags.join(","));
   if (filters.sort !== DEFAULT_FILTERS.sort) params.set("sort", filters.sort);
   for (const [key, value] of Object.entries(extra)) params.set(key, value);
@@ -98,6 +106,7 @@ export function hasActiveFilters(filters: Filters): boolean {
     filters.referral ||
     filters.priority ||
     filters.outreach ||
+    filters.linkedin ||
     filters.tags.length,
   );
 }
@@ -115,7 +124,7 @@ function byAddedDesc(a: OpportunityWithRelations, b: OpportunityWithRelations): 
 
 /**
  * Applies every filter together (AND), with tags matching ANY selected tag
- * and the message status matching ANY contact,
+ * and the message and LinkedIn statuses matching ANY contact,
  * then sorts. Does not mutate the input.
  */
 export function applyFilters(
@@ -136,6 +145,12 @@ export function applyFilters(
     if (filters.priority && o.priority !== filters.priority) return false;
     // An opportunity matches when any of its contacts has that message status.
     if (filters.outreach && !o.contacts.some((c) => c.outreach_status === filters.outreach)) {
+      return false;
+    }
+    if (
+      filters.linkedin &&
+      !o.contacts.some((c) => activeLinkedinConnection(c) === filters.linkedin)
+    ) {
       return false;
     }
     if (selectedTags.size && !o.tagIds.some((id) => selectedTags.has(id))) return false;

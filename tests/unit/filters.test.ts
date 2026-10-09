@@ -41,7 +41,10 @@ const opps = [
     priority: "low",
     deadline: "2026-10-05",
     tagIds: [TAG_B],
-    contacts: [makeContact({ outreach_status: "sent" })],
+    contacts: [
+      makeContact({ outreach_status: "sent" }),
+      makeContact({ linkedin_connection: "sent" }),
+    ],
     created_at: "2026-09-03T00:00:00Z",
   }),
   makeOpportunity({
@@ -69,6 +72,7 @@ describe("parseFilters", () => {
         tags: "not-a-uuid",
         priority: "x",
         outreach: "ghosted",
+        linkedin: "maybe",
       }),
     ).toEqual(DEFAULT_FILTERS);
   });
@@ -82,6 +86,7 @@ describe("parseFilters", () => {
         referral: "received",
         priority: "high",
         outreach: "replied",
+        linkedin: "sent",
         tags: `${TAG_A},${TAG_B},${TAG_A}`,
         sort: "deadline",
       }),
@@ -92,6 +97,7 @@ describe("parseFilters", () => {
       referral: "received",
       priority: "high",
       outreach: "replied",
+      linkedin: "sent",
       tags: [TAG_A, TAG_B],
       sort: "deadline",
     });
@@ -106,6 +112,7 @@ describe("parseFilters", () => {
       tab: "applied",
       q: "a b",
       outreach: "sent",
+      linkedin: "not_sent",
       tags: [TAG_A, TAG_B],
       sort: "priority",
     });
@@ -135,8 +142,16 @@ describe("applyFilters", () => {
   it("filters by message status on ANY contact", () => {
     expect(names(f({ outreach: "replied" }))).toEqual(["Quantinuum"]);
     expect(names(f({ outreach: "sent" }))).toEqual(["CrowdStrike"]);
-    expect(names(f({ outreach: "not_sent" }))).toEqual(["Quantinuum"]);
+    expect(names(f({ outreach: "not_sent" }))).toEqual(["CrowdStrike", "Quantinuum"]);
     expect(names(f({ outreach: "read" }))).toEqual([]);
+  });
+
+  it("filters by LinkedIn connection, ignoring contacts already messaged", () => {
+    expect(names(f({ linkedin: "sent" }))).toEqual(["CrowdStrike"]);
+    // CrowdStrike's only un-messaged contact has a request sent; Quantinuum's
+    // un-messaged contact doesn't, and its messaged contact no longer counts.
+    expect(names(f({ linkedin: "not_sent" }))).toEqual(["Quantinuum"]);
+    expect(hasActiveFilters(f({ linkedin: "sent" }))).toBe(true);
   });
 
   it("matches ANY selected tag", () => {

@@ -1,4 +1,9 @@
-import { OUTREACH_STATUSES, type OutreachStatus } from "./constants";
+import {
+  LINKEDIN_CONNECTIONS,
+  OUTREACH_STATUSES,
+  type LinkedinConnection,
+  type OutreachStatus,
+} from "./constants";
 import { isFollowUpDueThisWeek, isUpcomingDeadline } from "./dates";
 import type { OpportunityWithRelations, Tag } from "./types";
 
@@ -71,5 +76,29 @@ export function outreachCounts(
   return OUTREACH_STATUSES.map((status) => ({
     status,
     count: contacts.filter((c) => c.outreach_status === status).length,
+  })).filter((s) => s.count > 0);
+}
+
+type LinkedinFields = {
+  linkedin_connection: LinkedinConnection | null;
+  outreach_status: OutreachStatus;
+};
+
+/**
+ * The contact's LinkedIn connection status, or null once a message has been
+ * sent: from then on the message status is what matters, so the LinkedIn
+ * tag goes away.
+ */
+export function activeLinkedinConnection(contact: LinkedinFields): LinkedinConnection | null {
+  return contact.outreach_status === "not_sent" ? contact.linkedin_connection : null;
+}
+
+/** How many contacts are at each LinkedIn connection status, skipping empty ones. */
+export function linkedinCounts(
+  contacts: LinkedinFields[],
+): { status: LinkedinConnection; count: number }[] {
+  return LINKEDIN_CONNECTIONS.map((status) => ({
+    status,
+    count: contacts.filter((c) => activeLinkedinConnection(c) === status).length,
   })).filter((s) => s.count > 0);
 }

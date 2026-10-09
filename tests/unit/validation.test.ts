@@ -171,6 +171,7 @@ describe("contactSchema", () => {
         email: "Jane@Example.com",
         has_spoken: "on",
         outreach_status: "read",
+        linkedin_connection: "sent",
         last_contacted: "2026-09-01",
         next_follow_up: "2026-09-08",
         notes: "",
@@ -182,6 +183,7 @@ describe("contactSchema", () => {
       email: "jane@example.com",
       has_spoken: true,
       outreach_status: "read",
+      linkedin_connection: null,
       last_contacted: "2026-09-01",
       next_follow_up: "2026-09-08",
       notes: null,
@@ -261,5 +263,24 @@ describe("contactSchema outreach_status", () => {
 
   it("rejects unknown statuses", () => {
     expect(contactSchema.safeParse({ outreach_status: "ghosted" }).success).toBe(false);
+  });
+});
+
+describe("contactSchema linkedin_connection", () => {
+  it("defaults to not_sent and keeps the value while no message is sent", () => {
+    expect(contactSchema.parse({}).linkedin_connection).toBe("not_sent");
+    expect(contactSchema.parse({ linkedin_connection: "sent" }).linkedin_connection).toBe("sent");
+  });
+
+  it("clears the LinkedIn status once a message is sent", () => {
+    for (const outreach_status of ["sent", "read", "replied"]) {
+      expect(
+        contactSchema.parse({ outreach_status, linkedin_connection: "sent" }).linkedin_connection,
+      ).toBeNull();
+    }
+  });
+
+  it("rejects unknown values", () => {
+    expect(contactSchema.safeParse({ linkedin_connection: "pending" }).success).toBe(false);
   });
 });

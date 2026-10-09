@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CategoryTabs } from "@/components/dashboard/category-tabs";
 import { FilterBar } from "@/components/dashboard/filter-bar";
 import { JobBoards } from "@/components/dashboard/job-boards";
+import { LinkedinSummary } from "@/components/dashboard/linkedin-summary";
 import { SummaryStrip } from "@/components/dashboard/summary-strip";
 import { NewOpportunityButton } from "@/components/opportunities/new-opportunity-button";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
@@ -71,6 +72,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       </div>
 
       <SummaryStrip summary={summary} filters={filters} />
+      <LinkedinSummary opportunities={opportunities} filters={filters} />
       <JobBoards boards={jobBoards} />
       <CategoryTabs filters={filters} counts={counts} />
       <FilterBar key={filters.tab} filters={filters} tags={tags} />
@@ -120,6 +122,7 @@ function EmptyState({ filters, total, today }: { filters: Filters; total: number
             referral: null,
             priority: null,
             outreach: null,
+            linkedin: null,
             tags: [],
           })}
           scroll={false}

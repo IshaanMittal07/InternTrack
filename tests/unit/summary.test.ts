@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { computeSummary, contactProgress, outreachCounts } from "@/lib/domain/summary";
+import {
+  activeLinkedinConnection,
+  computeSummary,
+  contactProgress,
+  linkedinCounts,
+  outreachCounts,
+} from "@/lib/domain/summary";
 
 import { makeContact, makeOpportunity } from "./fixtures";
 
@@ -87,6 +93,34 @@ describe("outreachCounts", () => {
     ).toEqual([
       { status: "not_sent", count: 1 },
       { status: "replied", count: 2 },
+    ]);
+  });
+});
+
+describe("LinkedIn connections", () => {
+  it("only applies while no message has been sent", () => {
+    expect(
+      activeLinkedinConnection({ linkedin_connection: "sent", outreach_status: "not_sent" }),
+    ).toBe("sent");
+    for (const outreach_status of ["sent", "read", "replied"] as const) {
+      expect(activeLinkedinConnection({ linkedin_connection: "sent", outreach_status })).toBeNull();
+    }
+    expect(
+      activeLinkedinConnection({ linkedin_connection: null, outreach_status: "not_sent" }),
+    ).toBeNull();
+  });
+
+  it("counts contacts per connection status, ignoring messaged contacts", () => {
+    expect(
+      linkedinCounts([
+        { linkedin_connection: "sent", outreach_status: "not_sent" },
+        { linkedin_connection: "sent", outreach_status: "replied" },
+        { linkedin_connection: "not_sent", outreach_status: "not_sent" },
+        { linkedin_connection: "sent", outreach_status: "not_sent" },
+      ]),
+    ).toEqual([
+      { status: "not_sent", count: 1 },
+      { status: "sent", count: 2 },
     ]);
   });
 });

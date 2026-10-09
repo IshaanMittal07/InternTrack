@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 
 import {
+  LINKEDIN_CONNECTIONS,
   OUTREACH_LABELS,
   OUTREACH_STATUSES,
   PRIORITIES,
@@ -79,7 +80,7 @@ export function FilterBar({ filters: current, tags }: { filters: Filters; tags: 
 
   return (
     <div className="space-y-3 rounded-xl bg-surface p-4 shadow-card">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-7">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-8">
         <div className="col-span-2 space-y-1.5">
           <label htmlFor="filter-q" className="block text-sm font-medium">
             Search
@@ -124,6 +125,16 @@ export function FilterBar({ filters: current, tags }: { filters: Filters; tags: 
           value={filters.outreach ?? ""}
           onChange={(v) => update({ outreach: (v || null) as Filters["outreach"] })}
           options={OUTREACH_STATUSES.map((s) => [s, OUTREACH_LABELS[s].replace("Message ", "")])}
+        />
+        <Select
+          id="filter-linkedin"
+          label="LinkedIn"
+          value={filters.linkedin ?? ""}
+          onChange={(v) => update({ linkedin: (v || null) as Filters["linkedin"] })}
+          options={LINKEDIN_CONNECTIONS.map((s) => [
+            s,
+            s === "sent" ? "Connection sent" : "Connection not sent",
+          ])}
         />
         <Select
           id="filter-sort"

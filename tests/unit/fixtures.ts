@@ -16,6 +16,7 @@ export function makeContact(overrides: Partial<Contact> = {}): Contact {
     email: null,
     has_spoken: false,
     outreach_status: "not_sent",
+    linkedin_connection: "not_sent",
     last_contacted: null,
     next_follow_up: null,
     notes: null,
