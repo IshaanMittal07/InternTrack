@@ -3,7 +3,6 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 const base = {
   NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
-  ALLOWED_EMAIL: "  Me@Example.com ",
   APP_TIMEZONE: "America/Toronto",
 };
 
@@ -21,9 +20,9 @@ beforeAll(async () => {
 }, 30_000);
 
 describe("env", () => {
-  it("normalizes ALLOWED_EMAIL", async () => {
+  it("reads the Supabase settings", async () => {
     const env = await loadEnv(base);
-    expect(env().ALLOWED_EMAIL).toBe("me@example.com");
+    expect(env().NEXT_PUBLIC_SUPABASE_URL).toBe("http://127.0.0.1:54321");
   });
 
   it("defaults APP_TIMEZONE to UTC", async () => {
@@ -36,8 +35,8 @@ describe("env", () => {
     expect(() => env()).toThrow(/APP_TIMEZONE/);
   });
 
-  it("fails closed when ALLOWED_EMAIL is missing", async () => {
-    const env = await loadEnv({ ...base, ALLOWED_EMAIL: undefined });
-    expect(() => env()).toThrow(/ALLOWED_EMAIL/);
+  it("fails closed when the Supabase URL is missing", async () => {
+    const env = await loadEnv({ ...base, NEXT_PUBLIC_SUPABASE_URL: undefined });
+    expect(() => env()).toThrow(/NEXT_PUBLIC_SUPABASE_URL/);
   });
 });

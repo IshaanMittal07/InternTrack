@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-import { clearInbox, messagesTo } from "../support/mailpit";
+import { clearInbox, waitForMagicLink } from "../support/mailpit";
 
-import { NEUTRAL, signIn } from "./helpers";
+import { SENT, signIn } from "./helpers";
 
 test.describe("unauthenticated visitors", () => {
   for (const path of ["/", "/tags", "/export", "/?tab=applied&open=x", "/some/unknown/page"]) {
@@ -20,15 +20,15 @@ test.describe("unauthenticated visitors", () => {
   });
 });
 
-test.describe("sign-in lock", () => {
-  test("another email gets the same neutral message and no email", async ({ page }) => {
+test.describe("sign-in", () => {
+  test("a brand-new email gets a sign-in link", async ({ page }) => {
+    const email = `newcomer-${Date.now()}@test.local`;
     await clearInbox();
     await page.goto("/login");
-    await page.getByLabel("Email address").fill("intruder@test.local");
+    await page.getByLabel("Email address").fill(email);
     await page.getByRole("button", { name: "Email me a sign-in link" }).click();
-    await expect(page.getByRole("status")).toHaveText(NEUTRAL);
-    await page.waitForTimeout(1500);
-    expect(await messagesTo("intruder@test.local")).toEqual([]);
+    await expect(page.getByRole("status")).toHaveText(SENT);
+    expect(await waitForMagicLink(email)).toContain("/auth/v1/verify");
   });
 
   test("an invalid email gets a validation message", async ({ page }) => {

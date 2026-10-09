@@ -1,12 +1,15 @@
 import { z } from "zod";
 
-import { optionalDate, optionalEmail, optionalText, optionalUrl, requiredText } from "./common";
+import { OUTREACH_STATUSES } from "@/lib/domain/constants";
+
+import { optionalDate, optionalEmail, optionalText, optionalUrl } from "./common";
 
 export const contactSchema = z.object({
-  name: requiredText(120, "Name"),
+  name: optionalText(120, "Name"),
   title: optionalText(120, "Title"),
   linkedin_url: optionalUrl,
   email: optionalEmail,
+  outreach_status: z.enum(OUTREACH_STATUSES, "Choose a message status").default("not_sent"),
   has_spoken: z.preprocess((v) => v === "on" || v === "true" || v === true, z.boolean()),
   last_contacted: optionalDate,
   next_follow_up: optionalDate,

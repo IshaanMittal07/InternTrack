@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import { isAllowedEmail } from "@/lib/auth/allowlist";
 import { buildExportRows, toCsv } from "@/lib/csv";
 import { todayIn } from "@/lib/domain/dates";
 import { env } from "@/lib/env";
@@ -12,7 +11,7 @@ export async function GET() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
-  if (!claims || !isAllowedEmail(claims.email, env().ALLOWED_EMAIL)) {
+  if (!claims) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 

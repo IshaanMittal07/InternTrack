@@ -1,5 +1,4 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { Client } from "pg";
 
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -29,27 +28,6 @@ export function anonClient(): Db {
   return createClient<Database>(url(), env("NEXT_PUBLIC_SUPABASE_ANON_KEY"), options);
 }
 
-/** Direct Postgres connection, for setup that has no HTTP API (the allowlist). */
-export async function withPg<T>(fn: (pg: Client) => Promise<T>): Promise<T> {
-  const pg = new Client({ connectionString: env("SUPABASE_DB_URL") });
-  await pg.connect();
-  try {
-    return await fn(pg);
-  } finally {
-    await pg.end();
-  }
-}
-
-export async function allowEmail(email: string, allowed: boolean): Promise<void> {
-  await withPg((pg) =>
-    allowed
-      ? pg.query("insert into private.allowed_emails (email) values ($1) on conflict do nothing", [
-          email,
-        ])
-      : pg.query("delete from private.allowed_emails where email = $1", [email]),
-  );
-}
-
 /** Creates the user if needed and removes all of their app data. */
 export async function ensureUser(email: string): Promise<string> {
   const admin = adminClient();
@@ -67,6 +45,7 @@ export async function ensureUser(email: string): Promise<string> {
   }
   await admin.from("opportunities").delete().eq("user_id", user.id);
   await admin.from("tags").delete().eq("user_id", user.id);
+  await admin.from("job_boards").delete().eq("user_id", user.id);
   return user.id;
 }
 

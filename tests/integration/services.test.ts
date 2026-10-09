@@ -6,16 +6,7 @@ import * as opportunities from "@/server/services/opportunities";
 import { listOpportunities, listTags } from "@/server/services/queries";
 import * as tags from "@/server/services/tags";
 
-import {
-  OTHER,
-  OWNER,
-  adminClient,
-  allowEmail,
-  ensureUser,
-  must,
-  signedInClient,
-  type Db,
-} from "./helpers";
+import { OTHER, OWNER, adminClient, ensureUser, must, signedInClient, type Db } from "./helpers";
 
 /**
  * The service layer that every Server Action calls, exercised against the
@@ -30,8 +21,6 @@ const admin = adminClient();
 const TODAY = "2026-10-01";
 
 beforeAll(async () => {
-  await allowEmail(OWNER, true);
-  await allowEmail(OTHER, true);
   userId = await ensureUser(OWNER);
   otherId = await ensureUser(OTHER);
   db = await signedInClient(OWNER);

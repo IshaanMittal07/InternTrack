@@ -1,3 +1,4 @@
+import { OUTREACH_STATUSES, type OutreachStatus } from "./constants";
 import { isFollowUpDueThisWeek, isUpcomingDeadline } from "./dates";
 import type { OpportunityWithRelations, Tag } from "./types";
 
@@ -61,4 +62,14 @@ export function contactProgress(contacts: { has_spoken: boolean }[]): string | n
   if (contacts.length === 0) return null;
   const spoken = contacts.filter((c) => c.has_spoken).length;
   return `${spoken} of ${contacts.length} ${contacts.length === 1 ? "contact" : "contacts"} spoken to`;
+}
+
+/** How many contacts are at each message status, skipping statuses with none. */
+export function outreachCounts(
+  contacts: { outreach_status: OutreachStatus }[],
+): { status: OutreachStatus; count: number }[] {
+  return OUTREACH_STATUSES.map((status) => ({
+    status,
+    count: contacts.filter((c) => c.outreach_status === status).length,
+  })).filter((s) => s.count > 0);
 }

@@ -62,7 +62,7 @@ export function buildExportRows(
     const contacts = o.contacts
       .map((c) => {
         const details = [c.title, c.email].filter(Boolean).join(", ");
-        return `${c.name}${details ? ` (${details})` : ""} - ${c.has_spoken ? "spoken" : "not yet"}`;
+        return `${c.name ?? "Unnamed contact"}${details ? ` (${details})` : ""} - ${c.has_spoken ? "spoken" : "not yet"}`;
       })
       .join("; ");
 

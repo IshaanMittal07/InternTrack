@@ -5,6 +5,8 @@ import { useOptimistic, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Pill } from "@/components/ui/pill";
+import { OUTREACH_LABELS, OUTREACH_TONES } from "@/lib/domain/constants";
+import { contactLabel } from "@/lib/domain/contact-label";
 import { formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
 import { contactProgress } from "@/lib/domain/summary";
 import type { Contact } from "@/lib/domain/types";
@@ -62,6 +64,7 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const overdue = isFollowUpOverdue(contact.next_follow_up, today);
+  const label = contactLabel(contact);
 
   function toggleSpoken() {
     setError(null);
@@ -88,8 +91,10 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
     <li className="space-y-2 rounded-lg bg-surface-muted p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-medium break-words">{contact.name}</p>
-          {contact.title && <p className="text-sm text-ink-muted">{contact.title}</p>}
+          <p className="font-medium break-words">{label}</p>
+          {contact.title && contact.title !== label && (
+            <p className="text-sm text-ink-muted">{contact.title}</p>
+          )}
         </div>
         <button
           type="button"
@@ -113,7 +118,7 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
             rel="noopener noreferrer"
             className="text-accent-text underline underline-offset-2"
           >
-            LinkedIn<span className="sr-only"> profile of {contact.name} (opens in new tab)</span>
+            LinkedIn<span className="sr-only"> profile of {label} (opens in new tab)</span>
           </a>
         )}
         {contact.email && (
@@ -127,6 +132,9 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
       </div>
 
       <div className="flex flex-wrap gap-1.5">
+        <Pill tone={OUTREACH_TONES[contact.outreach_status]}>
+          {OUTREACH_LABELS[contact.outreach_status]}
+        </Pill>
         {contact.last_contacted && <Pill>Last contacted {formatDate(contact.last_contacted)}</Pill>}
         {contact.next_follow_up && (
           <Pill tone={overdue ? "danger" : "neutral"}>
@@ -147,15 +155,15 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
 
       <div className="flex gap-1">
         <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
-          Edit<span className="sr-only"> {contact.name}</span>
+          Edit<span className="sr-only"> {label}</span>
         </Button>
         <ConfirmButton
-          title={`Delete ${contact.name}?`}
+          title={`Delete ${label}?`}
           message="This contact will be permanently removed from this opportunity."
           confirmLabel="Delete contact"
           onConfirm={() => deleteContactAction(contact.id)}
         >
-          Delete<span className="sr-only"> {contact.name}</span>
+          Delete<span className="sr-only"> {label}</span>
         </ConfirmButton>
       </div>
     </li>

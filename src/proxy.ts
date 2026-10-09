@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { isAllowedEmail } from "@/lib/auth/allowlist";
 import { env, type Env } from "@/lib/env";
 import { buildCsp, generateNonce } from "@/lib/security/csp";
 import { redirectWithCookies, updateSession } from "@/lib/supabase/proxy";
@@ -41,13 +40,6 @@ export async function proxy(request: NextRequest) {
     return isPublic
       ? withCsp(session.response())
       : withCsp(redirectWithCookies(session.response(), loginUrl));
-  }
-
-  if (!isAllowedEmail(session.claims.email, config.ALLOWED_EMAIL)) {
-    // A valid session for any other account is ended immediately.
-    await session.supabase.auth.signOut();
-    loginUrl.searchParams.set("error", "signed-out");
-    return withCsp(redirectWithCookies(session.response(), loginUrl));
   }
 
   if (pathname === "/login") {

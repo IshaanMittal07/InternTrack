@@ -10,7 +10,7 @@ import {
   type Filters,
 } from "@/lib/domain/filters";
 
-import { makeOpportunity } from "./fixtures";
+import { makeContact, makeOpportunity } from "./fixtures";
 
 const TAG_A = "11111111-1111-4111-8111-111111111111";
 const TAG_B = "22222222-2222-4222-8222-222222222222";
@@ -29,6 +29,7 @@ const opps = [
     priority: "high",
     deadline: "2026-10-20",
     tagIds: [TAG_A],
+    contacts: [makeContact({ outreach_status: "replied" }), makeContact()],
     created_at: "2026-09-01T00:00:00Z",
   }),
   makeOpportunity({
@@ -40,6 +41,7 @@ const opps = [
     priority: "low",
     deadline: "2026-10-05",
     tagIds: [TAG_B],
+    contacts: [makeContact({ outreach_status: "sent" })],
     created_at: "2026-09-03T00:00:00Z",
   }),
   makeOpportunity({
@@ -66,6 +68,7 @@ describe("parseFilters", () => {
         stage: "hired",
         tags: "not-a-uuid",
         priority: "x",
+        outreach: "ghosted",
       }),
     ).toEqual(DEFAULT_FILTERS);
   });
@@ -78,6 +81,7 @@ describe("parseFilters", () => {
         stage: "interviewing",
         referral: "received",
         priority: "high",
+        outreach: "replied",
         tags: `${TAG_A},${TAG_B},${TAG_A}`,
         sort: "deadline",
       }),
@@ -87,6 +91,7 @@ describe("parseFilters", () => {
       stage: "interviewing",
       referral: "received",
       priority: "high",
+      outreach: "replied",
       tags: [TAG_A, TAG_B],
       sort: "deadline",
     });
@@ -97,7 +102,13 @@ describe("parseFilters", () => {
   });
 
   it("round-trips through filtersToQuery", () => {
-    const filters = f({ tab: "applied", q: "a b", tags: [TAG_A, TAG_B], sort: "priority" });
+    const filters = f({
+      tab: "applied",
+      q: "a b",
+      outreach: "sent",
+      tags: [TAG_A, TAG_B],
+      sort: "priority",
+    });
     const query = filtersToQuery(filters);
     expect(parseFilters(Object.fromEntries(new URLSearchParams(query)))).toEqual(filters);
   });
@@ -119,6 +130,13 @@ describe("applyFilters", () => {
     expect(names(f({ stage: "submitted" })).sort()).toEqual(["CrowdStrike", "Nvidia"]);
     expect(names(f({ referral: "received" }))).toEqual(["Quantinuum"]);
     expect(names(f({ priority: "low" }))).toEqual(["CrowdStrike"]);
+  });
+
+  it("filters by message status on ANY contact", () => {
+    expect(names(f({ outreach: "replied" }))).toEqual(["Quantinuum"]);
+    expect(names(f({ outreach: "sent" }))).toEqual(["CrowdStrike"]);
+    expect(names(f({ outreach: "not_sent" }))).toEqual(["Quantinuum"]);
+    expect(names(f({ outreach: "read" }))).toEqual([]);
   });
 
   it("matches ANY selected tag", () => {
@@ -158,5 +176,6 @@ describe("helpers", () => {
   it("knows when filters are active (sort and tab don't count)", () => {
     expect(hasActiveFilters(f({ sort: "deadline", tab: "planning" }))).toBe(false);
     expect(hasActiveFilters(f({ tags: [TAG_A] }))).toBe(true);
+    expect(hasActiveFilters(f({ outreach: "read" }))).toBe(true);
   });
 });

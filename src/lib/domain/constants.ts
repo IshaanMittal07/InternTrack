@@ -6,6 +6,7 @@ export type Stage = Enums<"application_stage">;
 export type ReferralStatus = Enums<"referral_status">;
 export type Priority = Enums<"priority_level">;
 export type TagColor = Enums<"tag_color">;
+export type OutreachStatus = Enums<"outreach_status">;
 
 export const CATEGORIES = ["applied", "planning", "interested"] as const satisfies Category[];
 export const STAGES = [
@@ -23,6 +24,12 @@ export const REFERRAL_STATUSES = [
   "declined",
 ] as const satisfies ReferralStatus[];
 export const PRIORITIES = ["low", "medium", "high"] as const satisfies Priority[];
+export const OUTREACH_STATUSES = [
+  "not_sent",
+  "sent",
+  "read",
+  "replied",
+] as const satisfies OutreachStatus[];
 export const TAG_COLORS = [
   "terracotta",
   "sage",
@@ -74,6 +81,20 @@ export const REFERRAL_TONES: Record<ReferralStatus, PillTone> = {
   requested: "amber",
   received: "success",
   declined: "neutral",
+};
+
+export const OUTREACH_LABELS: Record<OutreachStatus, string> = {
+  not_sent: "Message not sent",
+  sent: "Message sent",
+  read: "Message read",
+  replied: "Message replied",
+};
+
+export const OUTREACH_TONES: Record<OutreachStatus, PillTone> = {
+  not_sent: "neutral",
+  sent: "slate",
+  read: "amber",
+  replied: "success",
 };
 
 export const PRIORITY_LABELS: Record<Priority, string> = {

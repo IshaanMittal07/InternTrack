@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { CategoryTabs } from "@/components/dashboard/category-tabs";
 import { FilterBar } from "@/components/dashboard/filter-bar";
+import { JobBoards } from "@/components/dashboard/job-boards";
 import { SummaryStrip } from "@/components/dashboard/summary-strip";
 import { NewOpportunityButton } from "@/components/opportunities/new-opportunity-button";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
@@ -19,6 +20,7 @@ import {
 } from "@/lib/domain/filters";
 import { computeSummary } from "@/lib/domain/summary";
 import { env } from "@/lib/env";
+import { listJobBoards } from "@/server/services/job-boards";
 import { listOpportunities, listTags } from "@/server/services/queries";
 
 const EMPTY: Record<Category, { title: string; body: string; cta: string }> = {
@@ -45,9 +47,10 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const filters = parseFilters(params);
   const today = todayIn(env().APP_TIMEZONE);
 
-  const [opportunities, tags] = await Promise.all([
+  const [opportunities, tags, jobBoards] = await Promise.all([
     listOpportunities(supabase, userId),
     listTags(supabase, userId),
+    listJobBoards(supabase, userId),
   ]);
 
   const tagsById = new Map(tags.map((t) => [t.id, t]));
@@ -68,6 +71,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       </div>
 
       <SummaryStrip summary={summary} filters={filters} />
+      <JobBoards boards={jobBoards} />
       <CategoryTabs filters={filters} counts={counts} />
       <FilterBar key={filters.tab} filters={filters} tags={tags} />
 
@@ -115,6 +119,7 @@ function EmptyState({ filters, total, today }: { filters: Filters; total: number
             stage: null,
             referral: null,
             priority: null,
+            outreach: null,
             tags: [],
           })}
           scroll={false}

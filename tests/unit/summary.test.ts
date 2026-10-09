@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { computeSummary, contactProgress } from "@/lib/domain/summary";
+import { computeSummary, contactProgress, outreachCounts } from "@/lib/domain/summary";
 
 import { makeContact, makeOpportunity } from "./fixtures";
 
@@ -72,5 +72,21 @@ describe("contactProgress", () => {
     expect(
       contactProgress([{ has_spoken: true }, { has_spoken: false }, { has_spoken: true }]),
     ).toBe("2 of 3 contacts spoken to");
+  });
+});
+
+describe("outreachCounts", () => {
+  it("counts contacts per message status in order, skipping empty ones", () => {
+    expect(outreachCounts([])).toEqual([]);
+    expect(
+      outreachCounts([
+        { outreach_status: "replied" },
+        { outreach_status: "not_sent" },
+        { outreach_status: "replied" },
+      ]),
+    ).toEqual([
+      { status: "not_sent", count: 1 },
+      { status: "replied", count: 2 },
+    ]);
   });
 });

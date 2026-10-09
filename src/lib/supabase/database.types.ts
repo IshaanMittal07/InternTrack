@@ -7,13 +7,13 @@ export type Database = {
           Tables: {
             "contacts": {
                   Row: {
-                    "created_at": string,"email": string | null,"has_spoken": boolean,"id": string,"last_contacted": string | null,"linkedin_url": string | null,"name": string,"next_follow_up": string | null,"notes": string | null,"opportunity_id": string,"title": string | null,"updated_at": string,"user_id": string
+                    "created_at": string,"email": string | null,"has_spoken": boolean,"id": string,"last_contacted": string | null,"linkedin_url": string | null,"name": string | null,"next_follow_up": string | null,"notes": string | null,"opportunity_id": string,"outreach_status": Database["public"]['Enums']["outreach_status"],"title": string | null,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "created_at"?: string,"email"?: string | null,"has_spoken"?: boolean,"id"?: string,"last_contacted"?: string | null,"linkedin_url"?: string | null,"name": string,"next_follow_up"?: string | null,"notes"?: string | null,"opportunity_id": string,"title"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"email"?: string | null,"has_spoken"?: boolean,"id"?: string,"last_contacted"?: string | null,"linkedin_url"?: string | null,"name"?: string | null,"next_follow_up"?: string | null,"notes"?: string | null,"opportunity_id": string,"outreach_status"?: Database["public"]['Enums']["outreach_status"],"title"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string | null,"has_spoken"?: boolean,"id"?: string,"last_contacted"?: string | null,"linkedin_url"?: string | null,"name"?: string,"next_follow_up"?: string | null,"notes"?: string | null,"opportunity_id"?: string,"title"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"email"?: string | null,"has_spoken"?: boolean,"id"?: string,"last_contacted"?: string | null,"linkedin_url"?: string | null,"name"?: string | null,"next_follow_up"?: string | null,"notes"?: string | null,"opportunity_id"?: string,"outreach_status"?: Database["public"]['Enums']["outreach_status"],"title"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -23,6 +23,19 @@ isOneToOne: false
       referencedRelation: "opportunities"
       referencedColumns: ["id"]
     }
+                  ]
+                },"job_boards": {
+                  Row: {
+                    "created_at": string,"id": string,"name": string,"url": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"name": string,"url": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"name"?: string,"url"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"opportunities": {
                   Row: {
@@ -92,7 +105,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "application_stage": "submitted"|"online_assessment"|"interviewing"|"offer"|"rejected"|"withdrawn","opportunity_category": "applied"|"planning"|"interested","priority_level": "low"|"medium"|"high","referral_status": "not_requested"|"requested"|"received"|"declined","tag_color": "terracotta"|"sage"|"amber"|"slate"|"plum"|"teal"
+            "application_stage": "submitted"|"online_assessment"|"interviewing"|"offer"|"rejected"|"withdrawn","opportunity_category": "applied"|"planning"|"interested","outreach_status": "not_sent"|"sent"|"read"|"replied","priority_level": "low"|"medium"|"high","referral_status": "not_requested"|"requested"|"received"|"declined","tag_color": "terracotta"|"sage"|"amber"|"slate"|"plum"|"teal"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -208,7 +221,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "application_stage": ["submitted", "online_assessment", "interviewing", "offer", "rejected", "withdrawn"],"opportunity_category": ["applied", "planning", "interested"],"priority_level": ["low", "medium", "high"],"referral_status": ["not_requested", "requested", "received", "declined"],"tag_color": ["terracotta", "sage", "amber", "slate", "plum", "teal"]
+            "application_stage": ["submitted", "online_assessment", "interviewing", "offer", "rejected", "withdrawn"],"opportunity_category": ["applied", "planning", "interested"],"outreach_status": ["not_sent", "sent", "read", "replied"],"priority_level": ["low", "medium", "high"],"referral_status": ["not_requested", "requested", "received", "declined"],"tag_color": ["terracotta", "sage", "amber", "slate", "plum", "teal"]
           }
         }
 } as const

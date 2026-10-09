@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef, useState } from "react";
+
 import { Field } from "@/components/ui/field";
 import type { FieldErrors } from "@/lib/action-result";
 import {
@@ -47,6 +49,22 @@ export function OpportunityFields({
   /** When provided, a category picker is shown (create form only). */
   onCategoryChange?: (category: Category) => void;
 }) {
+  const [company, setCompany] = useState(values.company ?? "");
+  const [roleTitle, setRoleTitle] = useState(values.role_title ?? "");
+  const [postingUrl, setPostingUrl] = useState(values.posting_url ?? "");
+  const [location, setLocation] = useState(values.location ?? "");
+  const [deadline, setDeadline] = useState(values.deadline ?? "");
+  const [postingNotes, setPostingNotes] = useState(values.posting_notes ?? "");
+  const companyRef = useRef(company);
+  const roleTitleRef = useRef(roleTitle);
+  const locationRef = useRef(location);
+  const deadlineRef = useRef(deadline);
+  const postingNotesRef = useRef(postingNotes);
+  const [autofillPending, setAutofillPending] = useState(false);
+  const [autofillStatus, setAutofillStatus] = useState("");
+  const postingUrlRef = useRef(postingUrl);
+  const lastRequestedUrl = useRef(postingUrl);
+  const autofillRequest = useRef(0);
   const id = (name: string) => `${prefix}-${name}`;
   const aria = (name: string) => ({
     id: id(name),
@@ -54,6 +72,69 @@ export function OpportunityFields({
     "aria-invalid": errors[name] ? true : undefined,
     "aria-describedby": errors[name] ? `${id(name)}-error` : undefined,
   });
+
+  const autofillFromPosting = async () => {
+    const url = postingUrl.trim();
+    if (!url || url === lastRequestedUrl.current) return;
+    lastRequestedUrl.current = url;
+    const requestId = ++autofillRequest.current;
+    setAutofillPending(true);
+    setAutofillStatus("Reading posting…");
+
+    try {
+      const response = await fetch("/api/posting", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const result = (await response.json()) as {
+        details?: Partial<Pick<Opportunity, "company" | "role_title" | "location" | "deadline" | "posting_notes">>;
+        error?: string;
+      };
+
+      if (!response.ok || !result.details) {
+        throw new Error(result.error ?? "Could not read this posting.");
+      }
+      if (postingUrlRef.current.trim() !== url || autofillRequest.current !== requestId) return;
+
+      const filled: string[] = [];
+      if (!companyRef.current.trim() && result.details.company) {
+        companyRef.current = result.details.company;
+        setCompany(result.details.company);
+        filled.push("company");
+      }
+      if (!roleTitleRef.current.trim() && result.details.role_title) {
+        roleTitleRef.current = result.details.role_title;
+        setRoleTitle(result.details.role_title);
+        filled.push("role");
+      }
+      if (!locationRef.current.trim() && result.details.location) {
+        locationRef.current = result.details.location;
+        setLocation(result.details.location);
+        filled.push("location");
+      }
+      if (!deadlineRef.current && result.details.deadline) {
+        deadlineRef.current = result.details.deadline;
+        setDeadline(result.details.deadline);
+        filled.push("deadline");
+      }
+      if (!postingNotesRef.current.trim() && result.details.posting_notes) {
+        postingNotesRef.current = result.details.posting_notes;
+        setPostingNotes(result.details.posting_notes);
+        filled.push("posting notes");
+      }
+      setAutofillStatus(
+        filled.length ? `Filled ${filled.join(", ")}.` : "No empty fields could be filled.",
+      );
+    } catch (error) {
+      if (autofillRequest.current === requestId) {
+        lastRequestedUrl.current = "";
+        setAutofillStatus(error instanceof Error ? error.message : "Could not read this posting.");
+      }
+    } finally {
+      if (autofillRequest.current === requestId) setAutofillPending(false);
+    }
+  };
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -77,7 +158,11 @@ export function OpportunityFields({
       <Field id={id("company")} label="Company" required error={errors.company}>
         <input
           {...aria("company")}
-          defaultValue={values.company ?? ""}
+          value={company}
+          onChange={(event) => {
+            companyRef.current = event.target.value;
+            setCompany(event.target.value);
+          }}
           required
           maxLength={120}
           autoComplete="off"
@@ -87,7 +172,11 @@ export function OpportunityFields({
       <Field id={id("role_title")} label="Role" error={errors.role_title}>
         <input
           {...aria("role_title")}
-          defaultValue={values.role_title ?? ""}
+          value={roleTitle}
+          onChange={(event) => {
+            roleTitleRef.current = event.target.value;
+            setRoleTitle(event.target.value);
+          }}
           maxLength={200}
           autoComplete="off"
           placeholder={category === "interested" ? "Optional" : "e.g. Software Engineering Intern"}
@@ -132,16 +221,32 @@ export function OpportunityFields({
           {...aria("posting_url")}
           type="url"
           inputMode="url"
-          defaultValue={values.posting_url ?? ""}
+          value={postingUrl}
+          onChange={(event) => {
+            postingUrlRef.current = event.target.value;
+            autofillRequest.current += 1;
+            lastRequestedUrl.current = "";
+            setPostingUrl(event.target.value);
+            setAutofillStatus("");
+            setAutofillPending(false);
+          }}
+          onBlur={autofillFromPosting}
           maxLength={2048}
           placeholder="https://"
           className="input"
         />
+        <p className="mt-1 min-h-5 text-sm text-ink-muted" aria-live="polite">
+          {autofillPending ? "Reading posting…" : autofillStatus}
+        </p>
       </Field>
       <Field id={id("location")} label="Location" error={errors.location}>
         <input
           {...aria("location")}
-          defaultValue={values.location ?? ""}
+          value={location}
+          onChange={(event) => {
+            locationRef.current = event.target.value;
+            setLocation(event.target.value);
+          }}
           maxLength={200}
           className="input"
         />
@@ -159,7 +264,11 @@ export function OpportunityFields({
         <input
           {...aria("deadline")}
           type="date"
-          defaultValue={values.deadline ?? ""}
+          value={deadline}
+          onChange={(event) => {
+            deadlineRef.current = event.target.value;
+            setDeadline(event.target.value);
+          }}
           className="input"
         />
       </Field>
@@ -180,7 +289,11 @@ export function OpportunityFields({
       >
         <textarea
           {...aria("posting_notes")}
-          defaultValue={values.posting_notes ?? ""}
+          value={postingNotes}
+          onChange={(event) => {
+            postingNotesRef.current = event.target.value;
+            setPostingNotes(event.target.value);
+          }}
           maxLength={10_000}
           rows={3}
           className="input"

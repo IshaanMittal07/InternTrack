@@ -2,11 +2,13 @@ import { z } from "zod";
 
 import {
   CATEGORIES,
+  OUTREACH_STATUSES,
   PRIORITIES,
   PRIORITY_RANK,
   REFERRAL_STATUSES,
   STAGES,
   type Category,
+  type OutreachStatus,
   type Priority,
   type ReferralStatus,
   type Stage,
@@ -27,6 +29,7 @@ export type Filters = {
   stage: Stage | null;
   referral: ReferralStatus | null;
   priority: Priority | null;
+  outreach: OutreachStatus | null;
   tags: string[];
   sort: SortKey;
 };
@@ -37,6 +40,7 @@ export const DEFAULT_FILTERS: Filters = {
   stage: null,
   referral: null,
   priority: null,
+  outreach: null,
   tags: [],
   sort: "added",
 };
@@ -51,6 +55,7 @@ const filtersSchema = z.object({
   stage: z.enum(STAGES).nullable().catch(null),
   referral: z.enum(REFERRAL_STATUSES).nullable().catch(null),
   priority: z.enum(PRIORITIES).nullable().catch(null),
+  outreach: z.enum(OUTREACH_STATUSES).nullable().catch(null),
   tags: z.array(z.uuid()).max(50).catch([]),
   sort: z.enum(SORT_KEYS).catch(DEFAULT_FILTERS.sort),
 });
@@ -63,6 +68,7 @@ export function parseFilters(params: SearchParams): Filters {
     stage: first(params.stage) ?? null,
     referral: first(params.referral) ?? null,
     priority: first(params.priority) ?? null,
+    outreach: first(params.outreach) ?? null,
     tags: rawTags ? [...new Set(rawTags.split(",").filter(Boolean))] : [],
     sort: first(params.sort),
   });
@@ -78,6 +84,7 @@ export function filtersToQuery(filters: Filters, extra: Record<string, string> =
   if (filters.stage) params.set("stage", filters.stage);
   if (filters.referral) params.set("referral", filters.referral);
   if (filters.priority) params.set("priority", filters.priority);
+  if (filters.outreach) params.set("outreach", filters.outreach);
   if (filters.tags.length) params.set("tags", filters.tags.join(","));
   if (filters.sort !== DEFAULT_FILTERS.sort) params.set("sort", filters.sort);
   for (const [key, value] of Object.entries(extra)) params.set(key, value);
@@ -86,7 +93,12 @@ export function filtersToQuery(filters: Filters, extra: Record<string, string> =
 
 export function hasActiveFilters(filters: Filters): boolean {
   return Boolean(
-    filters.q || filters.stage || filters.referral || filters.priority || filters.tags.length,
+    filters.q ||
+    filters.stage ||
+    filters.referral ||
+    filters.priority ||
+    filters.outreach ||
+    filters.tags.length,
   );
 }
 
@@ -102,7 +114,8 @@ function byAddedDesc(a: OpportunityWithRelations, b: OpportunityWithRelations): 
 }
 
 /**
- * Applies every filter together (AND), with tags matching ANY selected tag,
+ * Applies every filter together (AND), with tags matching ANY selected tag
+ * and the message status matching ANY contact,
  * then sorts. Does not mutate the input.
  */
 export function applyFilters(
@@ -121,6 +134,10 @@ export function applyFilters(
     if (filters.stage && o.application_stage !== filters.stage) return false;
     if (filters.referral && o.referral_status !== filters.referral) return false;
     if (filters.priority && o.priority !== filters.priority) return false;
+    // An opportunity matches when any of its contacts has that message status.
+    if (filters.outreach && !o.contacts.some((c) => c.outreach_status === filters.outreach)) {
+      return false;
+    }
     if (selectedTags.size && !o.tagIds.some((id) => selectedTags.has(id))) return false;
     return true;
   });

@@ -1,13 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { isAllowedEmail } from "@/lib/auth/allowlist";
-import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
 /**
  * Magic-link landing route. Exchanges the one-time code for a session (PKCE:
- * it only works in the browser that requested the link), re-checks the
- * allowlist, and seeds the default tags on first sign-in.
+ * it only works in the browser that requested the link) and seeds the default
+ * tags on first sign-in.
  */
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
@@ -17,7 +15,7 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error || !isAllowedEmail(data.user?.email, env().ALLOWED_EMAIL)) {
+  if (error || !data.user) {
     await supabase.auth.signOut();
     return failure;
   }

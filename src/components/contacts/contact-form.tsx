@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { FormStatus } from "@/components/ui/form-status";
 import { useFormAction } from "@/components/ui/use-form-action";
+import { OUTREACH_LABELS, OUTREACH_STATUSES } from "@/lib/domain/constants";
+import { contactLabel } from "@/lib/domain/contact-label";
 import type { Contact } from "@/lib/domain/types";
 import { createContactAction, updateContactAction } from "@/server/actions/contacts";
 
@@ -43,14 +45,13 @@ export function ContactForm({
       onSubmit={form.onSubmit}
       noValidate
       className="space-y-3"
-      aria-label={mode.kind === "create" ? "Add contact" : `Edit ${values.name}`}
+      aria-label={mode.kind === "create" ? "Add contact" : `Edit ${contactLabel(mode.contact)}`}
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field id={id("name")} label="Name" required error={errors.name}>
+        <Field id={id("name")} label="Name" error={errors.name}>
           <input
             {...aria("name")}
             defaultValue={values.name ?? ""}
-            required
             maxLength={120}
             autoComplete="off"
             className="input"
@@ -85,6 +86,19 @@ export function ContactForm({
             autoComplete="off"
             className="input"
           />
+        </Field>
+        <Field id={id("outreach_status")} label="Message status" error={errors.outreach_status}>
+          <select
+            {...aria("outreach_status")}
+            defaultValue={values.outreach_status ?? "not_sent"}
+            className="input"
+          >
+            {OUTREACH_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {OUTREACH_LABELS[s]}
+              </option>
+            ))}
+          </select>
         </Field>
         <Field id={id("last_contacted")} label="Last contacted" error={errors.last_contacted}>
           <input
