@@ -1,58 +1,41 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { NEUTRAL_MESSAGE, requestMagicLink } from "@/server/auth/request-magic-link";
+import { SENT_MESSAGE, requestMagicLink } from "@/server/auth/request-magic-link";
 
-import { clearInbox, messagesTo, waitForMagicLink } from "../support/mailpit";
+import { clearInbox, waitForMagicLink } from "../support/mailpit";
 
-import { OTHER, OWNER, allowEmail, anonClient, ensureUser } from "./helpers";
+import { OWNER, adminClient, anonClient, ensureUser } from "./helpers";
 
 /**
- * Exercises the real sign-in path against local Supabase + Mailpit: only the
- * ALLOWED_EMAIL gets an email, and every address sees the same message.
+ * Exercises the real sign-in path against local Supabase + Mailpit: any
+ * address gets a magic link, and a new address gets a new account.
  */
 
 const sendLink = (email: string) =>
   anonClient().auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: false, emailRedirectTo: "http://localhost:3000/auth/callback" },
+    options: { shouldCreateUser: true, emailRedirectTo: "http://localhost:3000/auth/callback" },
   });
 
-beforeAll(async () => {
-  await allowEmail(OWNER, true);
-  await ensureUser(OWNER);
-  // OTHER is a real, confirmed account, so this proves the app-level check
-  // stops the email even for an existing user.
-  await ensureUser(OTHER);
-});
-
-describe("sign-in with ALLOWED_EMAIL lock", () => {
-  it("emails a magic link to the allowed address", async () => {
+describe("open sign-in", () => {
+  it("emails a magic link to an existing account", async () => {
+    await ensureUser(OWNER);
     await clearInbox();
-    const result = await requestMagicLink({
-      rawEmail: ` ${OWNER.toUpperCase()} `,
-      allowedEmail: OWNER,
-      sendLink,
-    });
-    expect(result).toEqual({ status: "sent", message: NEUTRAL_MESSAGE });
+    const result = await requestMagicLink({ rawEmail: ` ${OWNER.toUpperCase()} `, sendLink });
+    expect(result).toEqual({ status: "sent", message: SENT_MESSAGE });
     expect(await waitForMagicLink(OWNER)).toContain("/auth/v1/verify");
   });
 
-  it("sends nothing to another address and shows the same message", async () => {
+  it("creates an account and emails a link for a brand-new address", async () => {
+    const email = `newcomer-${Date.now()}@test.local`;
     await clearInbox();
-    for (const email of [OTHER, "nobody@test.local"]) {
-      const result = await requestMagicLink({ rawEmail: email, allowedEmail: OWNER, sendLink });
-      expect(result).toEqual({ status: "sent", message: NEUTRAL_MESSAGE });
-    }
-    await new Promise((r) => setTimeout(r, 1500));
-    expect(await messagesTo(OTHER)).toEqual([]);
-    expect(await messagesTo("nobody@test.local")).toEqual([]);
-  });
+    const result = await requestMagicLink({ rawEmail: email, sendLink });
+    expect(result).toEqual({ status: "sent", message: SENT_MESSAGE });
+    expect(await waitForMagicLink(email)).toContain("/auth/v1/verify");
 
-  it("Supabase itself refuses to create accounts for unknown emails", async () => {
-    const { error } = await anonClient().auth.signInWithOtp({
-      email: "nobody@test.local",
-      options: { shouldCreateUser: false },
-    });
-    expect(error).not.toBeNull();
+    const { data } = await adminClient().auth.admin.listUsers({ perPage: 1000 });
+    const user = data.users.find((u) => u.email === email);
+    expect(user).toBeDefined();
+    await adminClient().auth.admin.deleteUser(user!.id);
   });
 });

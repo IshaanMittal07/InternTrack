@@ -5,7 +5,6 @@ import {
   OWNER,
   STRANGER,
   adminClient,
-  allowEmail,
   anonClient,
   ensureUser,
   must,
@@ -14,9 +13,9 @@ import {
 } from "./helpers";
 
 /**
- * Proves Row Level Security isolates data: a second (allowlisted) user, an
- * unlisted user, and an anonymous visitor cannot read, insert, update or
- * delete anything belonging to the owner, in ANY table.
+ * Proves Row Level Security isolates data: a second user, a brand-new user,
+ * and an anonymous visitor cannot read, insert, update or delete anything
+ * belonging to the owner, in ANY table.
  */
 
 const TABLES = ["opportunities", "contacts", "tags", "opportunity_tags"] as const;
@@ -38,9 +37,6 @@ const ids = {
 };
 
 beforeAll(async () => {
-  await allowEmail(OWNER, true);
-  await allowEmail(OTHER, true);
-  await allowEmail(STRANGER, false);
   ownerId = await ensureUser(OWNER);
   otherId = await ensureUser(OTHER);
   await ensureUser(STRANGER);
@@ -214,20 +210,25 @@ describe("second user cannot touch the owner's data", () => {
   });
 });
 
-describe("a signed-in user who is NOT on the allowlist", () => {
-  it.each(TABLES)("cannot read %s at all", async (table) => {
+describe("a brand-new signed-in user", () => {
+  it.each(TABLES)("sees none of anyone else's %s", async (table) => {
     const { data, error } = await stranger.from(table).select("*");
     expect(error).toBeNull();
     expect(data).toEqual([]);
   });
 
-  it("cannot insert even their own rows", async () => {
+  it("can create and read their own rows only", async () => {
     const { error } = await stranger
       .from("opportunities")
       .insert({ category: "planning", company: "Stranger Co" });
-    expect(error?.code).toBe("42501");
-    const { error: tagError } = await stranger.from("tags").insert({ name: "S" });
-    expect(tagError?.code).toBe("42501");
+    expect(error).toBeNull();
+    const { data } = await stranger.from("opportunities").select("company, user_id");
+    expect(data?.map((r) => r.company)).toEqual(["Stranger Co"]);
+    const { data: ownerView } = await owner
+      .from("opportunities")
+      .select("id")
+      .eq("company", "Stranger Co");
+    expect(ownerView).toEqual([]);
   });
 });
 
@@ -253,15 +254,15 @@ describe("anonymous visitors (no session)", () => {
   });
 });
 
-describe("public sign-up is disabled", () => {
-  it("rejects new accounts via sign-up and via magic link", async () => {
+describe("public sign-up is open", () => {
+  it("creates a new account via magic link", async () => {
     const anon = anonClient();
     const email = `newcomer-${Date.now()}@test.local`;
-    const signUp = await anon.auth.signUp({ email, password: "a-long-password-123" });
-    expect(signUp.error).not.toBeNull();
     const otp = await anon.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
-    expect(otp.error).not.toBeNull();
+    expect(otp.error).toBeNull();
     const { data } = await admin.auth.admin.listUsers({ perPage: 1000 });
-    expect(data.users.some((u) => u.email === email)).toBe(false);
+    const user = data.users.find((u) => u.email === email);
+    expect(user).toBeDefined();
+    await admin.auth.admin.deleteUser(user!.id);
   });
 });

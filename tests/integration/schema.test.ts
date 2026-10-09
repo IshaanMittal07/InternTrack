@@ -2,15 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import type { TablesInsert } from "@/lib/supabase/database.types";
 
-import {
-  OWNER,
-  adminClient,
-  allowEmail,
-  ensureUser,
-  must,
-  signedInClient,
-  type Db,
-} from "./helpers";
+import { OWNER, adminClient, ensureUser, must, signedInClient, type Db } from "./helpers";
 
 /** Database-level rules: check constraints, triggers, cascades, seeding. */
 
@@ -19,7 +11,6 @@ let ownerId: string;
 const admin = adminClient();
 
 beforeAll(async () => {
-  await allowEmail(OWNER, true);
   ownerId = await ensureUser(OWNER);
   owner = await signedInClient(OWNER);
 });

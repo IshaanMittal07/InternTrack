@@ -1,7 +1,7 @@
 # Deployment
 
-This puts the tracker on a public Vercel URL backed by a free Supabase project, locked to
-your one email address. It takes about 15 minutes. Everything here is free (Supabase Free,
+This puts the tracker on a public Vercel URL backed by a free Supabase project. Anyone can
+sign up; each account only ever sees its own data. It takes about 15 minutes. Everything here is free (Supabase Free,
 Vercel Hobby).
 
 Throughout, replace:
@@ -27,40 +27,22 @@ Throughout, replace:
    npx supabase db push                        # applies everything in supabase/migrations
    ```
 
-   `db push` lists the 8 migrations and asks to confirm. Answer `Y`.
+   `db push` lists the migrations and asks to confirm. Answer `Y`.
 
    _Alternative without the CLI:_ open **SQL Editor** in the dashboard and run each file in
    `supabase/migrations/` in filename order (paste the contents, click **Run**).
 
-5. **Add your email to the database allowlist.** In the dashboard, open **SQL Editor →
-   New query**, paste this (with your email, all lowercase) and click **Run**:
+   Do **not** run `supabase/seed.sql` in production. It is for local development only.
 
-   ```sql
-   insert into private.allowed_emails (email) values ('you@example.com');
-   ```
-
-   This is the database-level lock: even a signed-in account that isn't on this list
-   can't read or write a single row.
-
-   Do **not** run `supabase/seed.sql` in production. It only holds local test addresses.
-
-## 2. Lock down authentication and create your account
+## 2. Configure authentication
 
 All of these are in the Supabase dashboard under **Authentication**.
 
-1. **Disable public sign-ups.** Open **Sign In / Providers** (called **Providers** or
-   **Settings** in some dashboard versions):
-   - Turn **off** "Allow new users to sign up" and click **Save**.
+1. **Allow sign-ups.** Open **Sign In / Providers** (called **Providers** or **Settings** in
+   some dashboard versions):
+   - Turn **on** "Allow new users to sign up" and click **Save**.
    - Make sure the **Email** provider is **enabled** (magic links need it).
-2. **Create your single account.** Open **Users → Add user → Create new user**:
-   - **Email:** `you@example.com`
-   - **Password:** generate a long random one (e.g. 40+ characters from your password
-     manager). You will never use it; the app signs you in with magic links only. Supabase
-     requires an account to have some way in, and a long random password means nobody can
-     guess their way in through Supabase's own API.
-   - Tick **Auto Confirm User**.
-   - Click **Create user**.
-3. **Configure URLs.** Open **URL Configuration**:
+2. **Configure URLs.** Open **URL Configuration**:
    - **Site URL:** `https://your-app.vercel.app` (until you have it, put
      `http://localhost:3000` and come back after step 3).
    - **Redirect URLs:** add both of these:
@@ -69,9 +51,9 @@ All of these are in the Supabase dashboard under **Authentication**.
 
    Supabase only sends magic links that return to one of these exact addresses.
 
-4. _(Optional but recommended)_ **Email rate limits.** Supabase's built-in email service
-   only sends a few emails per hour and is meant for testing. That's fine for one person
-   signing in occasionally. If you hit the limit, wait an hour, or set up free custom SMTP
+3. _(Recommended)_ **Email rate limits.** Supabase's built-in email service only sends a
+   few emails per hour and is meant for testing. With several people signing in, set up
+   custom SMTP. If you hit the limit, wait an hour, or set up free custom SMTP
    (e.g. Resend) under **Authentication → Emails → SMTP Settings**.
 
 ## 3. Push to GitHub and import into Vercel
@@ -101,7 +83,6 @@ environment (and Preview, if you use preview deployments).
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase → **Project Settings → API** (or **Data API**) → Project URL, e.g. `https://abcdefghijklmnop.supabase.co`   | **Public.** Safe to expose; it's just the address.                             |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → **Project Settings → API Keys** → the **publishable** key (`sb_publishable_…`) or the legacy **anon** key | **Public.** Designed to be public; it can't read anything here because of RLS. |
-| `ALLOWED_EMAIL`                 | `you@example.com`                                                                                                    | **Server-only.** Never add a `NEXT_PUBLIC_` prefix.                            |
 | `APP_TIMEZONE`                  | Your time zone, e.g. `America/Toronto`, `Asia/Kolkata`, `Europe/London`                                              | **Server-only.**                                                               |
 
 **Do NOT add** the Supabase **service role / secret key** to Vercel. The app doesn't use it,
@@ -121,13 +102,12 @@ Do these checks once, right after your first deploy.
    - `https://your-app.vercel.app/export` (must not download a file)
    - `https://your-app.vercel.app/?tab=applied`
    - `https://your-app.vercel.app/anything-else`
-2. **Another email gets nothing.** In the private window, request a link for an email you
-   own that is _not_ `ALLOWED_EMAIL` (e.g. a second address). You should see "If this email
-   is allowed, a link has been sent", and **no email should arrive** (check spam too).
-3. **Your email works.** Request a link for `ALLOWED_EMAIL`, then open the email **in the
+2. **Sign-up works.** Request a link for your email, then open the email **in the
    same browser** you requested it from (links are tied to that browser for security). You
    should land on your dashboard with the five default tags (Cybersecurity, Quantum,
    Software Engineering, Hardware, AI/ML).
+3. **Profiles are private.** Sign up with a second email in another browser. It starts
+   empty and cannot see anything from your first account.
 4. **Headers are set.** In the browser's DevTools → Network, click the page request and
    confirm the response has `content-security-policy`, `x-frame-options: DENY` and
    `x-robots-tag: noindex, nofollow`. The Console should show no CSP errors.
@@ -141,10 +121,18 @@ Do these checks once, right after your first deploy.
 - **Free-tier pause:** Supabase pauses free projects after about a week with no activity.
   If the app stops loading, open the Supabase dashboard and click **Restore project**.
   Your data is kept.
-- **Changing your email:** update `ALLOWED_EMAIL` in Vercel and redeploy, add the new
-  address with the SQL from step 1.5, change the user's email under **Authentication →
-  Users**, and optionally delete the old allowlist row:
-  `delete from private.allowed_emails where email = 'old@example.com';`
+- **Changing your email:** change the user's email under **Authentication → Users**.
 - **Future schema changes:** add a new file in `supabase/migrations/`, test it locally with
   `npm run db:reset`, then `npx supabase db push`.
 - **Backups and export:** use **Export CSV** in the app header any time.
+
+## Upgrading an existing single-user deployment
+
+Your existing data is kept as is: the upgrade only adds migrations, it never rewrites or
+deletes rows.
+
+1. `npx supabase db push` to apply the new migrations.
+2. In Supabase → **Authentication → Sign In / Providers**, turn **on** "Allow new users to
+   sign up".
+3. In Vercel, you can delete the `ALLOWED_EMAIL` variable (it is no longer read), then
+   redeploy.
