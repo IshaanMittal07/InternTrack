@@ -3,9 +3,17 @@ import { isIP } from "node:net";
 import https from "node:https";
 
 import {
+  cleanCompanyName,
+  cleanRoleTitle,
+  companyFromUrl,
   greenhouseApiUrl,
+  leverPostingUrl,
   parseGreenhouseJob,
   parsePostingHtml,
+  parseWorkableAccount,
+  parseWorkdaySidebar,
+  workableAccountApiUrl,
+  workdaySidebarUrl,
   type PostingDetails,
 } from "@/lib/domain/posting";
 
@@ -144,19 +152,52 @@ export async function fetchPostingHtml(source: string): Promise<string> {
   return response.body;
 }
 
-/**
- * Reads a posting's details. Greenhouse pages carry little metadata, so
- * their public job API is used instead; everything else is read from HTML.
- */
-export async function fetchPostingDetails(source: string): Promise<PostingDetails> {
+async function getJson(url: string): Promise<unknown> {
+  return JSON.parse((await get(url, "application/json")).body);
+}
+
+/** Asks the job site's own API for the company name, when it has one. */
+async function companyFromSiteApi(source: string): Promise<string | undefined> {
+  try {
+    const workable = workableAccountApiUrl(source);
+    if (workable) return parseWorkableAccount(await getJson(workable));
+    const workday = workdaySidebarUrl(source);
+    if (workday) return parseWorkdaySidebar(await getJson(workday));
+  } catch {
+    // The company is optional; fall through to guessing from the link.
+  }
+  return undefined;
+}
+
+async function readPosting(source: string): Promise<PostingDetails> {
   const apiUrl = greenhouseApiUrl(source);
   if (apiUrl) {
     try {
-      const response = await get(apiUrl, "application/json");
-      return parseGreenhouseJob(JSON.parse(response.body));
+      return parseGreenhouseJob(await getJson(apiUrl));
     } catch {
       // Fall back to reading the page itself.
     }
   }
-  return parsePostingHtml(await fetchPostingHtml(source));
+  return parsePostingHtml(await fetchPostingHtml(leverPostingUrl(source)));
+}
+
+/**
+ * Reads a posting's details. Greenhouse pages carry little metadata, so
+ * their public job API is used instead; everything else is read from HTML.
+ * The company comes from the page, else the site's API, else the link itself.
+ */
+export async function fetchPostingDetails(source: string): Promise<PostingDetails> {
+  let details: PostingDetails;
+  try {
+    details = await readPosting(source);
+  } catch (error) {
+    // Some sites refuse to serve the page; the link may still name the company.
+    const company = companyFromUrl(source);
+    if (!company) throw error;
+    return { company: cleanCompanyName(company) };
+  }
+  const company = details.company ?? (await companyFromSiteApi(source)) ?? companyFromUrl(source);
+  if (company) details.company = cleanCompanyName(company);
+  if (details.role_title) details.role_title = cleanRoleTitle(details.role_title, details.company);
+  return details;
 }

@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { greenhouseApiUrl, parseGreenhouseJob, parsePostingHtml } from "@/lib/domain/posting";
+import {
+  cleanCompanyName,
+  cleanRoleTitle,
+  companyFromUrl,
+  greenhouseApiUrl,
+  leverPostingUrl,
+  parseGreenhouseJob,
+  parsePostingHtml,
+  parseWorkableAccount,
+  parseWorkdaySidebar,
+  workableAccountApiUrl,
+  workdaySidebarUrl,
+} from "@/lib/domain/posting";
 import { fetchPostingHtml } from "@/server/services/posting-import";
 
 describe("parsePostingHtml", () => {
@@ -95,5 +107,75 @@ describe("parseGreenhouseJob", () => {
   it("returns nothing for unexpected data", () => {
     expect(parseGreenhouseJob(null)).toEqual({});
     expect(parseGreenhouseJob([1, 2])).toEqual({});
+  });
+});
+
+describe("company detection", () => {
+  it("cleans job-site and legal suffixes from company names", () => {
+    expect(cleanCompanyName("Amazon.jobs")).toBe("Amazon");
+    expect(cleanCompanyName("WTW External Careers Site")).toBe("WTW");
+    expect(cleanCompanyName("General Motors LLC")).toBe("General Motors");
+    expect(cleanCompanyName("Papa John's USA, Inc.")).toBe("Papa John's USA");
+    expect(cleanCompanyName("Bosch Group")).toBe("Bosch Group");
+    expect(cleanCompanyName("Careers")).toBe("Careers");
+  });
+
+  it("drops the company from role titles", () => {
+    expect(cleanRoleTitle("Engineer, ML Tools - EMEA Remote - Hugging Face", "Hugging Face")).toBe(
+      "Engineer, ML Tools - EMEA Remote",
+    );
+    expect(cleanRoleTitle("Viget - Software Developer Intern", "Viget")).toBe(
+      "Software Developer Intern",
+    );
+    expect(cleanRoleTitle("Intern at Acme", "Acme")).toBe("Intern");
+    expect(cleanRoleTitle("Acme", "Acme")).toBe("Acme");
+    expect(cleanRoleTitle("Intern", undefined)).toBe("Intern");
+  });
+
+  it.each([
+    ["https://jobs.lever.co/viget/abc/apply", "Viget"],
+    ["https://job-boards.greenhouse.io/sigma-computing/jobs/1", "Sigma Computing"],
+    ["https://boards.greenhouse.io/embed/job_app?for=acme&token=1", "Acme"],
+    ["https://modmed.wd501.myworkdayjobs.com/ModMed12/job/x", "Modmed"],
+    ["https://careers-peraton.icims.com/jobs/1/job", "Peraton"],
+    ["https://careers.itw.com/global/en/job/1", "Itw"],
+    ["https://jobs.acme.co.uk/role/1", "Acme"],
+  ])("guesses the company from %s", (url, company) => {
+    expect(companyFromUrl(url)).toBe(company);
+  });
+
+  it.each([
+    "https://eedu.fa.em3.oraclecloud.com/job/1",
+    "https://www.linkedin.com/jobs/view/1",
+    "not a url",
+  ])("makes no guess for shared job platforms like %s", (url) => {
+    expect(companyFromUrl(url)).toBeUndefined();
+  });
+
+  it("builds site API URLs", () => {
+    expect(leverPostingUrl("https://jobs.lever.co/viget/abc/apply")).toBe(
+      "https://jobs.lever.co/viget/abc",
+    );
+    expect(leverPostingUrl("https://example.com/apply")).toBe("https://example.com/apply");
+    expect(workableAccountApiUrl("https://apply.workable.com/huggingface/j/X1")).toBe(
+      "https://apply.workable.com/api/v1/accounts/huggingface",
+    );
+    expect(
+      workdaySidebarUrl("https://globalhr.wd5.myworkdayjobs.com/en-US/rec_rtx/job/US/Intern_1"),
+    ).toBe("https://globalhr.wd5.myworkdayjobs.com/wday/cxs/globalhr/rec_rtx/sidebar");
+    expect(workdaySidebarUrl("https://example.com/job/1")).toBeNull();
+  });
+
+  it("reads the company from Workable and Workday API responses", () => {
+    expect(parseWorkableAccount({ name: "Hugging Face" })).toBe("Hugging Face");
+    expect(parseWorkdaySidebar([{ type: "TEXT" }, { type: "IMAGE", altText: "RTX" }])).toBe("RTX");
+    expect(parseWorkdaySidebar([{ altText: "Acme logo" }])).toBe("Acme");
+    expect(parseWorkdaySidebar([{ altText: "Logo" }])).toBeUndefined();
+    expect(parseWorkdaySidebar({})).toBeUndefined();
+  });
+
+  it("accepts a plain-text hiringOrganization in JSON-LD", () => {
+    const html = `<script type="application/ld+json">{"@type":"JobPosting","title":"Intern","hiringOrganization":"Acme"}</script>`;
+    expect(parsePostingHtml(html).company).toBe("Acme");
   });
 });
