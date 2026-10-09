@@ -73,8 +73,9 @@ export function OpportunityFields({
     "aria-describedby": errors[name] ? `${id(name)}-error` : undefined,
   });
 
+  // Reads the ref, not state, so it also works right after a paste.
   const autofillFromPosting = async () => {
-    const url = postingUrl.trim();
+    const url = postingUrlRef.current.trim();
     if (!url || url === lastRequestedUrl.current) return;
     lastRequestedUrl.current = url;
     const requestId = ++autofillRequest.current;
@@ -88,7 +89,9 @@ export function OpportunityFields({
         body: JSON.stringify({ url }),
       });
       const result = (await response.json()) as {
-        details?: Partial<Pick<Opportunity, "company" | "role_title" | "location" | "deadline" | "posting_notes">>;
+        details?: Partial<
+          Pick<Opportunity, "company" | "role_title" | "location" | "deadline" | "posting_notes">
+        >;
         error?: string;
       };
 
@@ -231,6 +234,9 @@ export function OpportunityFields({
             setAutofillPending(false);
           }}
           onBlur={autofillFromPosting}
+          // Autofill as soon as a link is pasted; onChange runs first and
+          // stores the new value in postingUrlRef.
+          onPaste={() => setTimeout(autofillFromPosting, 0)}
           maxLength={2048}
           placeholder="https://"
           className="input"
