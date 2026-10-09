@@ -18,7 +18,7 @@ import {
  * belonging to the owner, in ANY table.
  */
 
-const TABLES = ["opportunities", "contacts", "tags", "opportunity_tags"] as const;
+const TABLES = ["opportunities", "contacts", "tags", "opportunity_tags", "job_boards"] as const;
 
 let ownerId: string;
 let otherId: string;
@@ -65,6 +65,14 @@ beforeAll(async () => {
     await owner
       .from("opportunity_tags")
       .insert({ opportunity_id: ids.ownerOpp, tag_id: ids.ownerTag })
+      .select()
+      .single(),
+  );
+
+  must(
+    await owner
+      .from("job_boards")
+      .insert({ name: "Glassdoor", url: "https://www.glassdoor.com" })
       .select()
       .single(),
   );

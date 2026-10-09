@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { formToObject } from "@/lib/validation/common";
 import { contactSchema } from "@/lib/validation/contact";
+import { jobBoardSchema } from "@/lib/validation/job-board";
 import { moveSchema, opportunitySchema, referralSchema } from "@/lib/validation/opportunity";
 import { tagSchema, tagUpdateSchema } from "@/lib/validation/tag";
 
@@ -228,5 +229,22 @@ describe("formToObject", () => {
     fd.set("company", "Acme");
     fd.set("$ACTION_ID_abc", "");
     expect(formToObject(fd)).toEqual({ company: "Acme" });
+  });
+});
+
+describe("jobBoardSchema", () => {
+  it("parses a name and http(s) link", () => {
+    expect(
+      jobBoardSchema.parse({ name: " Glassdoor ", url: " https://www.glassdoor.com " }),
+    ).toEqual({ name: "Glassdoor", url: "https://www.glassdoor.com" });
+  });
+
+  it("requires both fields and rejects non-http links", () => {
+    expect(jobBoardSchema.safeParse({ name: "", url: "https://x.com" }).success).toBe(false);
+    expect(jobBoardSchema.safeParse({ name: "X", url: "" }).success).toBe(false);
+    expect(jobBoardSchema.safeParse({ name: "X", url: "javascript:alert(1)" }).success).toBe(false);
+    expect(jobBoardSchema.safeParse({ name: "x".repeat(61), url: "https://x.com" }).success).toBe(
+      false,
+    );
   });
 });

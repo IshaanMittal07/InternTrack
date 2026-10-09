@@ -24,6 +24,19 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"job_boards": {
+                  Row: {
+                    "created_at": string,"id": string,"name": string,"url": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"name": string,"url": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"name"?: string,"url"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"opportunities": {
                   Row: {
                     "application_stage": Database["public"]['Enums']["application_stage"] | null,"category": Database["public"]['Enums']["opportunity_category"],"company": string,"created_at": string,"date_applied": string | null,"deadline": string | null,"id": string,"location": string | null,"notes": string | null,"posting_notes": string | null,"posting_url": string | null,"priority": Database["public"]['Enums']["priority_level"],"referral_status": Database["public"]['Enums']["referral_status"],"referred_by_contact_id": string | null,"role_title": string | null,"term": string | null,"updated_at": string,"user_id": string

@@ -45,6 +45,7 @@ export async function ensureUser(email: string): Promise<string> {
   }
   await admin.from("opportunities").delete().eq("user_id", user.id);
   await admin.from("tags").delete().eq("user_id", user.id);
+  await admin.from("job_boards").delete().eq("user_id", user.id);
   return user.id;
 }
 

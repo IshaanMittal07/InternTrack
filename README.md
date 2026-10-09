@@ -15,6 +15,8 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 - **Three categories:** Applied, Planning, Interested, shown as tabs with count badges.
 - **Summary strip:** total applied, interviews in progress, referrals received, follow-ups
   due this week, deadlines in the next 14 days, and a count per tag (click one to filter).
+- **Job boards:** save quick links to the sites you search (e.g. Glassdoor, InternInsider)
+  right on the dashboard.
 - **Cards** show company, role, stage, deadline, referral status, tags, and contact
   progress (e.g. "2 of 3 contacts spoken to").
 - **Detail drawer** for each opportunity:
