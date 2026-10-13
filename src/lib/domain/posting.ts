@@ -324,3 +324,93 @@ export function cleanRoleTitle(role: string, company: string | undefined): strin
     .trim();
   return cleaned || role;
 }
+
+// The opportunity form's limits, so read values can always be saved.
+const DETAIL_LIMITS = {
+  company: 120,
+  role_title: 200,
+  location: 200,
+  posting_notes: 10_000,
+} as const;
+
+/** Shortens any detail longer than the opportunity form allows. */
+export function truncatePostingDetails(details: PostingDetails): PostingDetails {
+  const result = { ...details };
+  for (const [key, max] of Object.entries(DETAIL_LIMITS) as [
+    keyof typeof DETAIL_LIMITS,
+    number,
+  ][]) {
+    const value = result[key];
+    if (value && value.length > max) result[key] = `${value.slice(0, max - 1).trimEnd()}…`;
+  }
+  return result;
+}
+
+const TRACKING_PARAM = /^(utm_\w+|gclid|fbclid|trk|trackingId|refId)$/i;
+
+/**
+ * One link per posting, so the same job saved twice is recognized: drops the
+ * #fragment and tracking parameters, and turns a LinkedIn search page with a
+ * job open (`?currentJobId=123`) into that job's own page.
+ */
+export function canonicalPostingUrl(source: string): string {
+  const url = parseUrl(source);
+  if (!url) return source;
+  url.hash = "";
+  const host = url.hostname.toLowerCase();
+  const linkedinJob = url.searchParams.get("currentJobId");
+  if ((host === "linkedin.com" || host.endsWith(".linkedin.com")) && linkedinJob) {
+    if (/^\d+$/.test(linkedinJob)) return `https://www.linkedin.com/jobs/view/${linkedinJob}/`;
+  }
+  for (const key of [...url.searchParams.keys()]) {
+    if (TRACKING_PARAM.test(key)) url.searchParams.delete(key);
+  }
+  return url.toString();
+}
+
+/**
+ * Role (and, on LinkedIn, company) from a browser tab title such as
+ * "(3) Software Engineer Intern | Acme | LinkedIn" or "Intern - Acme".
+ */
+export function detailsFromPageTitle(title: string, source: string): PostingDetails {
+  const parts = title
+    .replace(/^\(\d+\)\s*/, "")
+    .split(/\s+[|–—]\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const result: PostingDetails = {};
+  if (parts[0]) result.role_title = parts[0];
+  const host = parseUrl(source)?.hostname.toLowerCase() ?? "";
+  const onLinkedin = host === "linkedin.com" || host.endsWith(".linkedin.com");
+  if (onLinkedin && parts.length >= 3 && /^linkedin$/i.test(parts.at(-1)!)) {
+    result.company = parts[1];
+  }
+  return result;
+}
+
+/**
+ * Combines what the browser saw on the page (`page`), what the server read
+ * from the link (`fetched`) and the tab title, in that order of trust, then
+ * cleans the company and role names.
+ */
+export function mergePostingDetails({
+  page,
+  fetched,
+  title,
+  source,
+}: {
+  page: { company?: string | null; role_title?: string | null };
+  fetched: PostingDetails;
+  title?: string | null;
+  source: string;
+}): PostingDetails {
+  const fromTitle = title ? detailsFromPageTitle(title, source) : {};
+  const details: PostingDetails = { ...fetched };
+  const company =
+    page.company?.trim() || fetched.company || fromTitle.company || companyFromUrl(source);
+  const role = page.role_title?.trim() || fetched.role_title || fromTitle.role_title;
+  if (company) details.company = cleanCompanyName(company);
+  else delete details.company;
+  if (role) details.role_title = cleanRoleTitle(role, details.company);
+  return truncatePostingDetails(details);
+}

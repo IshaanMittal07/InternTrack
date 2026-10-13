@@ -20,6 +20,10 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 - **LinkedIn connection per posting:** mark a posting's LinkedIn connection as sent or
   unsent in its form; the tag shows on the card and can be filtered, and disappears once
   you message one of its contacts.
+- **Save to tracker bookmark:** add it once from **Save button** in the header. After
+  applying, click it on the job posting and the job is saved under Applied with today's
+  date (company, role, location and description filled in when the page has them). A
+  posting already in the tracker with the same link is moved to Applied, not duplicated.
 - **Job boards:** save quick links to the sites you search (e.g. Glassdoor, InternInsider)
   right on the dashboard.
 - **Cards** show company, role, stage, deadline, referral status, tags, and contact

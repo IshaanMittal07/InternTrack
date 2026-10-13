@@ -13,6 +13,9 @@ export function SiteHeader() {
           <Link href="/" className={buttonClasses("ghost", "sm")}>
             Dashboard
           </Link>
+          <Link href="/save" className={buttonClasses("ghost", "sm")}>
+            Save button
+          </Link>
           <Link href="/tags" className={buttonClasses("ghost", "sm")}>
             Manage tags
           </Link>

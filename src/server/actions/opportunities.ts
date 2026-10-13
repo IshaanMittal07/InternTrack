@@ -7,6 +7,8 @@ import { requireUser } from "@/lib/auth/session";
 import { todayIn } from "@/lib/domain/dates";
 import { env } from "@/lib/env";
 import * as service from "@/server/services/opportunities";
+import { fetchPostingDetails } from "@/server/services/posting-import";
+import { quickSavePosting } from "@/server/services/quick-save";
 
 /*
  * Server Actions are public HTTP endpoints, so each one re-verifies the
@@ -60,6 +62,20 @@ export async function setReferralAction(
 ) {
   const { supabase, userId } = await requireUser();
   const result = await service.setReferral(supabase, userId, id, formData);
+  if (result.ok) revalidatePath("/");
+  return result;
+}
+
+/** Saves the job page the "Save to tracker" bookmark was clicked on, as applied today. */
+export async function quickSavePostingAction(input: {
+  url: string;
+  company?: string;
+  role?: string;
+  title?: string;
+}) {
+  const { supabase, userId } = await requireUser();
+  const today = todayIn(env().APP_TIMEZONE);
+  const result = await quickSavePosting(supabase, userId, input, today, fetchPostingDetails);
   if (result.ok) revalidatePath("/");
   return result;
 }

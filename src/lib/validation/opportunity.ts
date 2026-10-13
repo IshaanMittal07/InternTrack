@@ -66,3 +66,17 @@ export const referralSchema = z.object({
   referral_status: z.enum(REFERRAL_STATUSES, "Choose a referral status"),
   referred_by_contact_id: z.preprocess((v) => (v === "" ? null : v), uuid.nullable()),
 });
+
+/** Hint text from the browser: kept short, never rejected for its length. */
+const hint = z.preprocess(
+  (v) => (typeof v === "string" ? v.trim().slice(0, 300) : undefined),
+  z.string().optional(),
+);
+
+/** What the "Save to tracker" bookmark sends: the page's link and what it read there. */
+export const quickSaveSchema = z.object({
+  url: optionalUrl.refine((v) => v !== null, "This page has no web link to save"),
+  company: hint,
+  role: hint,
+  title: hint,
+});
