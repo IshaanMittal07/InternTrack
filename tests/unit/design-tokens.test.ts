@@ -38,6 +38,7 @@ const TEXT = 4.5; // WCAG AA, normal text
 const UI = 3; // WCAG AA, non-text UI (borders, focus rings)
 
 const tagColors = ["terracotta", "sage", "amber", "slate", "plum", "teal"];
+const statusColors = ["rejected", "unsent", "sent", "spoken"];
 
 const pairs: [fg: string, bg: string, min: number][] = [
   ["ink", "canvas", TEXT],
@@ -63,6 +64,10 @@ const pairs: [fg: string, bg: string, min: number][] = [
   ["focus", "canvas", UI],
   ["accent", "surface", UI],
   ...tagColors.map((c): [string, string, number] => [`tag-${c}-fg`, `tag-${c}-bg`, TEXT]),
+  ...statusColors.flatMap((c): [string, string, number][] => [
+    [`status-${c}`, "surface", UI],
+    [`status-${c}`, "canvas", UI],
+  ]),
 ];
 
 describe.each([

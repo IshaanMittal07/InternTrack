@@ -5,6 +5,7 @@ import {
   computeSummary,
   contactProgress,
   outreachCounts,
+  postingHighlight,
 } from "@/lib/domain/summary";
 
 import { makeContact, makeOpportunity } from "./fixtures";
@@ -117,5 +118,46 @@ describe("activeLinkedinConnection", () => {
         }),
       ).toBeNull();
     }
+  });
+});
+
+describe("postingHighlight", () => {
+  const base = {
+    application_stage: null,
+    linkedin_connection: null,
+    contacts: [] as { has_spoken: boolean }[],
+  };
+
+  it("is null when nothing applies", () => {
+    expect(postingHighlight(base)).toBeNull();
+    expect(postingHighlight({ ...base, contacts: [{ has_spoken: false }] })).toBeNull();
+  });
+
+  it("follows the LinkedIn connection status", () => {
+    expect(postingHighlight({ ...base, linkedin_connection: "not_sent" })).toBe(
+      "connection_unsent",
+    );
+    expect(postingHighlight({ ...base, linkedin_connection: "sent" })).toBe("connection_sent");
+  });
+
+  it("prefers a contact spoken to over the connection status", () => {
+    expect(
+      postingHighlight({
+        ...base,
+        linkedin_connection: "sent",
+        contacts: [{ has_spoken: false }, { has_spoken: true }],
+      }),
+    ).toBe("spoken");
+  });
+
+  it("marks rejections above everything else", () => {
+    expect(
+      postingHighlight({
+        application_stage: "rejected",
+        linkedin_connection: "sent",
+        contacts: [{ has_spoken: true }],
+      }),
+    ).toBe("rejected");
+    expect(postingHighlight({ ...base, application_stage: "withdrawn" })).toBeNull();
   });
 });

@@ -14,8 +14,21 @@ import {
   STAGE_TONES,
 } from "@/lib/domain/constants";
 import { deadlineLabel, deadlineStatus, formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
-import { activeLinkedinConnection, contactProgress, outreachCounts } from "@/lib/domain/summary";
+import {
+  activeLinkedinConnection,
+  contactProgress,
+  outreachCounts,
+  postingHighlight,
+  type PostingHighlight,
+} from "@/lib/domain/summary";
 import type { OpportunityWithRelations, Tag } from "@/lib/domain/types";
+
+const HIGHLIGHT_BORDERS: Record<PostingHighlight, string> = {
+  rejected: "border-status-rejected",
+  spoken: "border-status-spoken",
+  connection_sent: "border-status-sent",
+  connection_unsent: "border-status-unsent",
+};
 
 export function OpportunityCard({
   opportunity: o,
@@ -41,6 +54,7 @@ export function OpportunityCard({
   const progress = contactProgress(o.contacts);
   const outreach = outreachCounts(o.contacts);
   const linkedin = activeLinkedinConnection(o);
+  const highlight = postingHighlight(o);
   const tags = o.tagIds
     .map((id) => tagsById.get(id))
     .filter((t): t is Tag => Boolean(t))
@@ -51,7 +65,7 @@ export function OpportunityCard({
       <Link
         href={href}
         scroll={false}
-        className="flex h-full flex-col gap-3 rounded-xl bg-surface p-4 shadow-card transition-shadow hover:shadow-raised"
+        className={`flex h-full flex-col gap-3 rounded-xl border-2 bg-surface p-4 shadow-card transition-shadow hover:shadow-raised ${highlight ? HIGHLIGHT_BORDERS[highlight] : "border-transparent"}`}
       >
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">

@@ -1,4 +1,9 @@
-import { OUTREACH_STATUSES, type LinkedinConnection, type OutreachStatus } from "./constants";
+import {
+  OUTREACH_STATUSES,
+  type LinkedinConnection,
+  type OutreachStatus,
+  type Stage,
+} from "./constants";
 import { isFollowUpDueThisWeek, isUpcomingDeadline } from "./dates";
 import type { OpportunityWithRelations, Tag } from "./types";
 
@@ -86,4 +91,23 @@ export function activeLinkedinConnection(opportunity: {
   return opportunity.contacts.some((c) => c.outreach_status !== "not_sent")
     ? null
     : opportunity.linkedin_connection;
+}
+
+export type PostingHighlight = "rejected" | "spoken" | "connection_sent" | "connection_unsent";
+
+/**
+ * The color a posting's card is outlined in, by how far along it is:
+ * rejected, then a contact spoken to, then the LinkedIn connection status.
+ * Null when none of these apply.
+ */
+export function postingHighlight(opportunity: {
+  application_stage: Stage | null;
+  linkedin_connection: LinkedinConnection | null;
+  contacts: { has_spoken: boolean }[];
+}): PostingHighlight | null {
+  if (opportunity.application_stage === "rejected") return "rejected";
+  if (opportunity.contacts.some((c) => c.has_spoken)) return "spoken";
+  if (opportunity.linkedin_connection === "sent") return "connection_sent";
+  if (opportunity.linkedin_connection === "not_sent") return "connection_unsent";
+  return null;
 }
