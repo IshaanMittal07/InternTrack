@@ -14,21 +14,14 @@ import {
   STAGE_TONES,
 } from "@/lib/domain/constants";
 import { deadlineLabel, deadlineStatus, formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
+import { HIGHLIGHT_BORDERS } from "@/components/opportunities/highlight";
 import {
   activeLinkedinConnection,
   contactProgress,
   outreachCounts,
   postingHighlight,
-  type PostingHighlight,
 } from "@/lib/domain/summary";
 import type { OpportunityWithRelations, Tag } from "@/lib/domain/types";
-
-const HIGHLIGHT_BORDERS: Record<PostingHighlight, string> = {
-  rejected: "border-status-rejected",
-  spoken: "border-status-spoken",
-  connection_sent: "border-status-sent",
-  connection_unsent: "border-status-unsent",
-};
 
 export function OpportunityCard({
   opportunity: o,

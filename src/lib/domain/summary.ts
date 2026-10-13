@@ -93,20 +93,29 @@ export function activeLinkedinConnection(opportunity: {
     : opportunity.linkedin_connection;
 }
 
-export type PostingHighlight = "rejected" | "spoken" | "connection_sent" | "connection_unsent";
+export const POSTING_HIGHLIGHTS = [
+  "rejected",
+  "connection_unsent",
+  "connection_sent",
+  "messaged",
+  "spoken",
+] as const;
+
+export type PostingHighlight = (typeof POSTING_HIGHLIGHTS)[number];
 
 /**
  * The color a posting's card is outlined in, by how far along it is:
- * rejected, then a contact spoken to, then the LinkedIn connection status.
- * Null when none of these apply.
+ * rejected, then a contact spoken to, then a contact messaged (sent, read or
+ * replied), then the LinkedIn connection status. Null when none apply.
  */
 export function postingHighlight(opportunity: {
   application_stage: Stage | null;
   linkedin_connection: LinkedinConnection | null;
-  contacts: { has_spoken: boolean }[];
+  contacts: { has_spoken: boolean; outreach_status: OutreachStatus }[];
 }): PostingHighlight | null {
   if (opportunity.application_stage === "rejected") return "rejected";
   if (opportunity.contacts.some((c) => c.has_spoken)) return "spoken";
+  if (opportunity.contacts.some((c) => c.outreach_status !== "not_sent")) return "messaged";
   if (opportunity.linkedin_connection === "sent") return "connection_sent";
   if (opportunity.linkedin_connection === "not_sent") return "connection_unsent";
   return null;

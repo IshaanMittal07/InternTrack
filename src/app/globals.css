@@ -49,6 +49,7 @@
   --status-rejected: #d92d20;
   --status-unsent: #b88400;
   --status-sent: #2563eb;
+  --status-messaged: #7c3aed;
   --status-spoken: #2f8a3e;
 
   --shadow-card: 0 1px 2px rgb(45 42 38 / 0.04), 0 2px 8px rgb(45 42 38 / 0.06);
@@ -97,6 +98,7 @@
     --status-rejected: #f97066;
     --status-unsent: #f5c542;
     --status-sent: #6ea8fe;
+    --status-messaged: #b794f6;
     --status-spoken: #6cc47a;
 
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.25);
@@ -147,6 +149,7 @@
   --color-status-rejected: var(--status-rejected);
   --color-status-unsent: var(--status-unsent);
   --color-status-sent: var(--status-sent);
+  --color-status-messaged: var(--status-messaged);
   --color-status-spoken: var(--status-spoken);
 
   --shadow-card: var(--shadow-card);

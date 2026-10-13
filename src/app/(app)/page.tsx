@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CardLegend } from "@/components/dashboard/card-legend";
 import { CategoryTabs } from "@/components/dashboard/category-tabs";
 import { FilterBar } from "@/components/dashboard/filter-bar";
 import { JobBoards } from "@/components/dashboard/job-boards";
@@ -74,6 +75,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       <JobBoards boards={jobBoards} />
       <CategoryTabs filters={filters} counts={counts} />
       <FilterBar key={filters.tab} filters={filters} tags={tags} />
+      <CardLegend />
 
       <section aria-label="Opportunities" aria-live="polite">
         {visible.length > 0 ? (

@@ -38,7 +38,7 @@ const TEXT = 4.5; // WCAG AA, normal text
 const UI = 3; // WCAG AA, non-text UI (borders, focus rings)
 
 const tagColors = ["terracotta", "sage", "amber", "slate", "plum", "teal"];
-const statusColors = ["rejected", "unsent", "sent", "spoken"];
+const statusColors = ["rejected", "unsent", "sent", "messaged", "spoken"];
 
 const pairs: [fg: string, bg: string, min: number][] = [
   ["ink", "canvas", TEXT],

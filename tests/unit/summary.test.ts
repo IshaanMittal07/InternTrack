@@ -122,15 +122,21 @@ describe("activeLinkedinConnection", () => {
 });
 
 describe("postingHighlight", () => {
+  type C = { has_spoken: boolean; outreach_status: "not_sent" | "sent" | "read" | "replied" };
+  const contact = (over: Partial<C> = {}): C => ({
+    has_spoken: false,
+    outreach_status: "not_sent",
+    ...over,
+  });
   const base = {
     application_stage: null,
     linkedin_connection: null,
-    contacts: [] as { has_spoken: boolean }[],
+    contacts: [] as C[],
   };
 
   it("is null when nothing applies", () => {
     expect(postingHighlight(base)).toBeNull();
-    expect(postingHighlight({ ...base, contacts: [{ has_spoken: false }] })).toBeNull();
+    expect(postingHighlight({ ...base, contacts: [contact()] })).toBeNull();
   });
 
   it("follows the LinkedIn connection status", () => {
@@ -138,14 +144,31 @@ describe("postingHighlight", () => {
       "connection_unsent",
     );
     expect(postingHighlight({ ...base, linkedin_connection: "sent" })).toBe("connection_sent");
+    expect(postingHighlight({ ...base, linkedin_connection: "sent", contacts: [contact()] })).toBe(
+      "connection_sent",
+    );
   });
 
-  it("prefers a contact spoken to over the connection status", () => {
+  it("prefers a message sent over the connection status", () => {
+    for (const outreach_status of ["sent", "read", "replied"] as const) {
+      for (const linkedin_connection of [null, "not_sent", "sent"] as const) {
+        expect(
+          postingHighlight({
+            ...base,
+            linkedin_connection,
+            contacts: [contact(), contact({ outreach_status })],
+          }),
+        ).toBe("messaged");
+      }
+    }
+  });
+
+  it("prefers a contact spoken to over messages and the connection status", () => {
     expect(
       postingHighlight({
         ...base,
         linkedin_connection: "sent",
-        contacts: [{ has_spoken: false }, { has_spoken: true }],
+        contacts: [contact({ outreach_status: "replied" }), contact({ has_spoken: true })],
       }),
     ).toBe("spoken");
   });
@@ -155,7 +178,7 @@ describe("postingHighlight", () => {
       postingHighlight({
         application_stage: "rejected",
         linkedin_connection: "sent",
-        contacts: [{ has_spoken: true }],
+        contacts: [contact({ has_spoken: true, outreach_status: "replied" })],
       }),
     ).toBe("rejected");
     expect(postingHighlight({ ...base, application_stage: "withdrawn" })).toBeNull();

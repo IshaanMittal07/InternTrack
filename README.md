@@ -28,9 +28,10 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
   right on the dashboard.
 - **Cards** show company, role, stage, deadline, referral status, tags, and contact
   progress (e.g. "2 of 3 contacts spoken to").
-- **Card outlines** color-code each posting: red when rejected, green once a contact has
-  been spoken to, blue when the LinkedIn connection is sent, yellow when it is unsent
-  (checked in that order).
+- **Card outlines** color-code each posting, with a legend above the cards: red when
+  rejected, green once a contact has been spoken to, purple once a contact has been
+  messaged, blue when the LinkedIn connection is sent, yellow when it is unsent (checked
+  in that order).
 - **Detail drawer** for each opportunity:
   - Edit every field.
   - **Contacts:** add, edit and delete people, with a one-click "spoken with" toggle,
