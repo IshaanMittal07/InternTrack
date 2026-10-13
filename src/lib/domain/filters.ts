@@ -15,7 +15,12 @@ import {
   type ReferralStatus,
   type Stage,
 } from "./constants";
-import { activeLinkedinConnection } from "./summary";
+import {
+  POSTING_HIGHLIGHTS,
+  activeLinkedinConnection,
+  postingHighlight,
+  type PostingHighlight,
+} from "./summary";
 import type { OpportunityWithRelations } from "./types";
 
 export const SORT_KEYS = ["added", "deadline", "priority"] as const;
@@ -34,6 +39,8 @@ export type Filters = {
   priority: Priority | null;
   outreach: OutreachStatus | null;
   linkedin: LinkedinConnection | null;
+  /** Card outline color, from the legend. */
+  color: PostingHighlight | null;
   tags: string[];
   sort: SortKey;
 };
@@ -46,6 +53,7 @@ export const DEFAULT_FILTERS: Filters = {
   priority: null,
   outreach: null,
   linkedin: null,
+  color: null,
   tags: [],
   sort: "added",
 };
@@ -62,6 +70,7 @@ const filtersSchema = z.object({
   priority: z.enum(PRIORITIES).nullable().catch(null),
   outreach: z.enum(OUTREACH_STATUSES).nullable().catch(null),
   linkedin: z.enum(LINKEDIN_CONNECTIONS).nullable().catch(null),
+  color: z.enum(POSTING_HIGHLIGHTS).nullable().catch(null),
   tags: z.array(z.uuid()).max(50).catch([]),
   sort: z.enum(SORT_KEYS).catch(DEFAULT_FILTERS.sort),
 });
@@ -76,6 +85,7 @@ export function parseFilters(params: SearchParams): Filters {
     priority: first(params.priority) ?? null,
     outreach: first(params.outreach) ?? null,
     linkedin: first(params.linkedin) ?? null,
+    color: first(params.color) ?? null,
     tags: rawTags ? [...new Set(rawTags.split(",").filter(Boolean))] : [],
     sort: first(params.sort),
   });
@@ -93,6 +103,7 @@ export function filtersToQuery(filters: Filters, extra: Record<string, string> =
   if (filters.priority) params.set("priority", filters.priority);
   if (filters.outreach) params.set("outreach", filters.outreach);
   if (filters.linkedin) params.set("linkedin", filters.linkedin);
+  if (filters.color) params.set("color", filters.color);
   if (filters.tags.length) params.set("tags", filters.tags.join(","));
   if (filters.sort !== DEFAULT_FILTERS.sort) params.set("sort", filters.sort);
   for (const [key, value] of Object.entries(extra)) params.set(key, value);
@@ -107,6 +118,7 @@ export function hasActiveFilters(filters: Filters): boolean {
     filters.priority ||
     filters.outreach ||
     filters.linkedin ||
+    filters.color ||
     filters.tags.length,
   );
 }
@@ -150,6 +162,7 @@ export function applyFilters(
     if (filters.linkedin && activeLinkedinConnection(o) !== filters.linkedin) {
       return false;
     }
+    if (filters.color && postingHighlight(o) !== filters.color) return false;
     if (selectedTags.size && !o.tagIds.some((id) => selectedTags.has(id))) return false;
     return true;
   });

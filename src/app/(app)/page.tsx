@@ -19,7 +19,7 @@ import {
   parseFilters,
   type Filters,
 } from "@/lib/domain/filters";
-import { computeSummary } from "@/lib/domain/summary";
+import { computeSummary, highlightCounts } from "@/lib/domain/summary";
 import { env } from "@/lib/env";
 import { listJobBoards } from "@/server/services/job-boards";
 import { listOpportunities, listTags } from "@/server/services/queries";
@@ -75,7 +75,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       <JobBoards boards={jobBoards} />
       <CategoryTabs filters={filters} counts={counts} />
       <FilterBar key={filters.tab} filters={filters} tags={tags} />
-      <CardLegend />
+      <CardLegend filters={filters} counts={highlightCounts(opportunities, filters.tab)} />
 
       <section aria-label="Opportunities" aria-live="polite">
         {visible.length > 0 ? (
@@ -123,6 +123,7 @@ function EmptyState({ filters, total, today }: { filters: Filters; total: number
             priority: null,
             outreach: null,
             linkedin: null,
+            color: null,
             tags: [],
           })}
           scroll={false}

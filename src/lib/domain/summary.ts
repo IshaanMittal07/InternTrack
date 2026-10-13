@@ -1,5 +1,6 @@
 import {
   OUTREACH_STATUSES,
+  type Category,
   type LinkedinConnection,
   type OutreachStatus,
   type Stage,
@@ -119,4 +120,21 @@ export function postingHighlight(opportunity: {
   if (opportunity.linkedin_connection === "sent") return "connection_sent";
   if (opportunity.linkedin_connection === "not_sent") return "connection_unsent";
   return null;
+}
+
+/** How many postings in `category` have each card outline color. */
+export function highlightCounts(
+  opportunities: (Parameters<typeof postingHighlight>[0] & { category: Category })[],
+  category: Category,
+): Record<PostingHighlight, number> {
+  const counts = Object.fromEntries(POSTING_HIGHLIGHTS.map((h) => [h, 0])) as Record<
+    PostingHighlight,
+    number
+  >;
+  for (const o of opportunities) {
+    if (o.category !== category) continue;
+    const highlight = postingHighlight(o);
+    if (highlight) counts[highlight] += 1;
+  }
+  return counts;
 }

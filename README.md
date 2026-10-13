@@ -31,7 +31,8 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 - **Card outlines** color-code each posting, with a legend above the cards: red when
   rejected, green once a contact has been spoken to, purple once a contact has been
   messaged, blue when the LinkedIn connection is sent, yellow when it is unsent (checked
-  in that order).
+  in that order). Click a color in the legend to show only those postings; click it again
+  to show all.
 - **Detail drawer** for each opportunity:
   - Edit every field.
   - **Contacts:** add, edit and delete people, with a one-click "spoken with" toggle,

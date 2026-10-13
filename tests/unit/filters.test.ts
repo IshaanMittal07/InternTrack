@@ -72,6 +72,7 @@ describe("parseFilters", () => {
         priority: "x",
         outreach: "ghosted",
         linkedin: "maybe",
+        color: "orange",
       }),
     ).toEqual(DEFAULT_FILTERS);
   });
@@ -86,6 +87,7 @@ describe("parseFilters", () => {
         priority: "high",
         outreach: "replied",
         linkedin: "sent",
+        color: "messaged",
         tags: `${TAG_A},${TAG_B},${TAG_A}`,
         sort: "deadline",
       }),
@@ -97,6 +99,7 @@ describe("parseFilters", () => {
       priority: "high",
       outreach: "replied",
       linkedin: "sent",
+      color: "messaged",
       tags: [TAG_A, TAG_B],
       sort: "deadline",
     });
@@ -112,6 +115,7 @@ describe("parseFilters", () => {
       q: "a b",
       outreach: "sent",
       linkedin: "not_sent",
+      color: "spoken",
       tags: [TAG_A, TAG_B],
       sort: "priority",
     });
@@ -150,6 +154,15 @@ describe("applyFilters", () => {
     expect(names(f({ linkedin: "sent" }))).toEqual(["Nvidia"]);
     expect(names(f({ linkedin: "not_sent" }))).toEqual([]);
     expect(hasActiveFilters(f({ linkedin: "sent" }))).toBe(true);
+  });
+
+  it("filters by card outline color", () => {
+    // Quantinuum and CrowdStrike have a contact messaged; Nvidia only a connection sent.
+    expect(names(f({ color: "messaged" }))).toEqual(["CrowdStrike", "Quantinuum"]);
+    expect(names(f({ color: "connection_sent" }))).toEqual(["Nvidia"]);
+    expect(names(f({ color: "rejected" }))).toEqual([]);
+    expect(names(f({ color: "messaged", tags: [TAG_B] }))).toEqual(["CrowdStrike"]);
+    expect(hasActiveFilters(f({ color: "spoken" }))).toBe(true);
   });
 
   it("matches ANY selected tag", () => {

@@ -4,6 +4,7 @@ import {
   activeLinkedinConnection,
   computeSummary,
   contactProgress,
+  highlightCounts,
   outreachCounts,
   postingHighlight,
 } from "@/lib/domain/summary";
@@ -182,5 +183,49 @@ describe("postingHighlight", () => {
       }),
     ).toBe("rejected");
     expect(postingHighlight({ ...base, application_stage: "withdrawn" })).toBeNull();
+  });
+});
+
+describe("highlightCounts", () => {
+  it("counts each outline color within one category", () => {
+    const opportunities = [
+      makeOpportunity({
+        category: "applied",
+        date_applied: "2026-09-01",
+        application_stage: "rejected",
+      }),
+      makeOpportunity({
+        category: "applied",
+        date_applied: "2026-09-01",
+        application_stage: "submitted",
+        linkedin_connection: "sent",
+      }),
+      makeOpportunity({
+        category: "applied",
+        date_applied: "2026-09-01",
+        application_stage: "submitted",
+        linkedin_connection: "sent",
+      }),
+      makeOpportunity({
+        category: "applied",
+        date_applied: "2026-09-01",
+        application_stage: "submitted",
+        contacts: [makeContact({ has_spoken: true })],
+      }),
+      makeOpportunity({
+        category: "applied",
+        date_applied: "2026-09-01",
+        application_stage: "submitted",
+      }),
+      makeOpportunity({ category: "planning", linkedin_connection: "not_sent" }),
+    ];
+    expect(highlightCounts(opportunities, "applied")).toEqual({
+      rejected: 1,
+      connection_unsent: 0,
+      connection_sent: 2,
+      messaged: 0,
+      spoken: 1,
+    });
+    expect(highlightCounts(opportunities, "planning").connection_unsent).toBe(1);
   });
 });
