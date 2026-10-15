@@ -4,8 +4,11 @@ import { env, type Env } from "@/lib/env";
 import { buildCsp, generateNonce } from "@/lib/security/csp";
 import { redirectWithCookies, updateSession } from "@/lib/supabase/proxy";
 
-/** Routes reachable without a session. Everything else requires sign-in. */
-const PUBLIC_PATHS = new Set(["/login", "/auth/callback"]);
+/**
+ * Routes reachable without a session. Everything else requires sign-in.
+ * /api/email/sync authenticates each request with the user's sync key instead.
+ */
+const PUBLIC_PATHS = new Set(["/login", "/auth/callback", "/api/email/sync"]);
 
 export async function proxy(request: NextRequest) {
   const nonce = generateNonce();
