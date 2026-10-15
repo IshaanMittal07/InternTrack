@@ -29,6 +29,15 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
   section) are filled in for you. Pick which saved posting they belong to
   (postings at their current company are suggested first) and they're added as a contact.
   It never creates a posting. Set it up on the same "Save to tracker" page.
+- **Visa sponsorship:** each posting has a Visa sponsorship field (No, Maybe, Highly likely,
+  Yes), filled in from the job description when you paste the posting link or save with the
+  bookmark. **No** means the description rules sponsorship out (or requires citizenship,
+  permanent residency or a clearance), **Yes** means it offers sponsorship, **Highly likely**
+  means it welcomes students on visas (CPT/OPT, F-1, international students) or offers
+  immigration support, and **Maybe** means it says sponsorship might be possible, says nothing,
+  or contradicts itself. Postings it can't read are left as "Not checked" rather than guessed.
+  **Check visa sponsorship** on the dashboard fills in existing postings, and never changes a
+  value you set yourself.
 - **Email sync:** connect Gmail (a small Apps Script in your own Google account) and Outlook /
   Microsoft 365 (read-only sign-in). When a rejection email arrives, the matching Applied
   posting is marked Rejected. It acts only on clear rejection wording that matches exactly one
