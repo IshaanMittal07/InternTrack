@@ -25,7 +25,8 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
   date (company, role, location and description filled in when the page has them). A
   posting already in the tracker with the same link is moved to Applied, not duplicated.
 - **Add LinkedIn contact bookmark:** click it on someone's LinkedIn profile and their name,
-  title and profile link are filled in for you. Pick which saved posting they belong to
+  profile link and their job title at the posting's company (read from their Experience
+  section) are filled in for you. Pick which saved posting they belong to
   (postings at their current company are suggested first) and they're added as a contact.
   It never creates a posting. Set it up on the same "Save to tracker" page.
 - **Email sync:** connect Gmail (a small Apps Script in your own Google account) and Outlook /

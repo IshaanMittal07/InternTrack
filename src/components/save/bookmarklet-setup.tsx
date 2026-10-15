@@ -130,6 +130,10 @@ export function BookmarkletSetup() {
             <strong>Add contact</strong>.
           </li>
           <li>
+            The title is their job title at the posting&apos;s company, taken from the Experience
+            section of their profile, and changes if you pick a different posting.
+          </li>
+          <li>
             It never creates a new posting, and a posting they&apos;re already a contact on
             can&apos;t be picked twice.
           </li>

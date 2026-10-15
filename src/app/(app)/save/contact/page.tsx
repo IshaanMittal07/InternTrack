@@ -30,6 +30,7 @@ export default async function AddContactPage({ searchParams }: PageProps<"/save/
     headline: first(params.headline),
     company: first(params.company),
     title: first(params.title),
+    experience: first(params.experience),
   });
 
   if (!profile.linkedin_url) {

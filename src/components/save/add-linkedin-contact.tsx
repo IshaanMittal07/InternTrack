@@ -9,7 +9,7 @@ import { FormStatus } from "@/components/ui/form-status";
 import { useFormAction } from "@/components/ui/use-form-action";
 import { fail } from "@/lib/action-result";
 import { CATEGORY_LABELS, type Category } from "@/lib/domain/constants";
-import type { ProfileDetails } from "@/lib/domain/linkedin";
+import { roleAt, type ProfileDetails } from "@/lib/domain/linkedin";
 import { createContactAction } from "@/server/actions/contacts";
 
 export type PostingChoice = {
@@ -38,6 +38,15 @@ export function AddLinkedInContact({
   postings: PostingChoice[];
 }) {
   const [saved, setSaved] = useState<PostingChoice | null>(null);
+  const suggested = postings.filter((p) => p.suggested);
+  const others = postings.filter((p) => !p.suggested);
+  const defaultPosting = suggested.find((p) => !p.alreadyAdded);
+  /** Their role at the posting's company per their Experience, else their current role. */
+  const titleFor = (posting: PostingChoice | undefined) =>
+    (posting && roleAt(profile.experience, posting.company)) || profile.title;
+  const [title, setTitle] = useState(() => titleFor(defaultPosting));
+  // Once the title is typed in, picking another posting no longer replaces it.
+  const [titleEdited, setTitleEdited] = useState(false);
   const form = useFormAction<{ id: string }>(
     (formData) => {
       const opportunityId = String(formData.get("opportunity_id") ?? "");
@@ -95,9 +104,6 @@ export function AddLinkedInContact({
     );
   }
 
-  const suggested = postings.filter((p) => p.suggested);
-  const others = postings.filter((p) => !p.suggested);
-  const defaultPosting = suggested.find((p) => !p.alreadyAdded)?.id ?? "";
   const options = (list: PostingChoice[]) =>
     list.map((p) => (
       <option key={p.id} value={p.id} disabled={p.alreadyAdded}>
@@ -121,7 +127,11 @@ export function AddLinkedInContact({
         <Field id="opportunity_id" label="Posting" required error={errors.opportunity_id}>
           <select
             {...fieldAria("opportunity_id", errors.opportunity_id)}
-            defaultValue={defaultPosting}
+            defaultValue={defaultPosting?.id ?? ""}
+            onChange={(event) => {
+              if (titleEdited) return;
+              setTitle(titleFor(postings.find((p) => p.id === event.target.value)));
+            }}
             className="input"
           >
             <option value="">Choose a posting…</option>
@@ -148,7 +158,11 @@ export function AddLinkedInContact({
           <Field id="title" label="Title" error={errors.title}>
             <input
               {...fieldAria("title", errors.title)}
-              defaultValue={profile.title}
+              value={title}
+              onChange={(event) => {
+                setTitle(event.target.value);
+                setTitleEdited(true);
+              }}
               maxLength={120}
               placeholder="e.g. Recruiter"
               className="input"
