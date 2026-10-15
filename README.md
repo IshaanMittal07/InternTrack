@@ -24,6 +24,11 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
   applying, click it on the job posting and the job is saved under Applied with today's
   date (company, role, location and description filled in when the page has them). A
   posting already in the tracker with the same link is moved to Applied, not duplicated.
+- **Email sync:** connect Gmail (a small Apps Script in your own Google account) and Outlook /
+  Microsoft 365 (read-only sign-in). When a rejection email arrives, the matching Applied
+  posting is marked Rejected. It acts only on clear rejection wording that matches exactly one
+  in-progress application; anything unclear is listed for you to review, and every change can
+  be undone. Setup: "Email sync" in [DEPLOYMENT.md](DEPLOYMENT.md).
 - **Job boards:** save quick links to the sites you search (e.g. Glassdoor, InternInsider)
   right on the dashboard.
 - **Cards** show company, role, stage, deadline, referral status, tags, and contact
@@ -63,11 +68,12 @@ data. Several independent layers enforce this, so a mistake in one is caught by 
 | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Open sign-up, private data**      | Anyone can create an account by requesting a magic link. Every account sees only its own opportunities, contacts and tags.                                                                                                                                                                                             |
 | **Magic links with PKCE**           | A link only works in the browser that requested it, so a forwarded or leaked email link is useless.                                                                                                                                                                                                                    |
-| **Proxy (middleware)**              | `src/proxy.ts` runs on every request. Signed-out visitors are redirected to `/login` from every route except `/login`, the auth callback and static files. (Next.js 16 renamed `middleware.ts` to `proxy.ts`.)                                                                                                         |
+| **Proxy (middleware)**              | `src/proxy.ts` runs on every request. Signed-out visitors are redirected to `/login` from every route except `/login`, the auth callback, static files and `/api/email/sync` (which instead requires the user's email sync key). (Next.js 16 renamed `middleware.ts` to `proxy.ts`.)                                   |
 | **Every page and action re-checks** | All data access happens on the server. Every Server Component and Server Action calls `requireUser()` (verified session) and validates input with Zod before touching the database. Queries are also scoped to the signed-in user id.                                                                                  |
 | **Row Level Security in Postgres**  | RLS is on for every table, with separate select/insert/update/delete policies allowing only rows where `user_id = auth.uid()`. Child tables also verify that linked rows (opportunity, tag) belong to the same user, because Postgres checks foreign keys without RLS. The `anon` role has no privileges on any table. |
 | **No service role key in the app**  | The app never uses the Supabase service role key, which would bypass RLS. It isn't configured in Vercel at all. It is only used locally by tests.                                                                                                                                                                      |
 | **Security headers**                | A per-request nonce-based Content-Security-Policy (only scripts carrying that request's random nonce can run), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Robots-Tag: noindex, nofollow`, `Permissions-Policy` and HSTS.                       |
+| **Email sync keys and tokens**      | The Gmail script authenticates with a random per-user key; only its SHA-256 hash is stored. Microsoft sign-ins are kept in the unexposed `private` schema, encrypted with AES-256-GCM under a server-only key. Syncing runs through narrow database functions that act only for the key's owner.                       |
 | **Not indexed**                     | `robots.txt` disallows all crawling, and pages carry `noindex` metadata.                                                                                                                                                                                                                                               |
 
 Only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are public. The anon key

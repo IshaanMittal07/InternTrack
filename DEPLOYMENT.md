@@ -116,6 +116,56 @@ Do these checks once, right after your first deploy.
    (`opportunities`, `contacts`, `tags`, `opportunity_tags`) shows **RLS enabled** with
    four policies each.
 
+## Email sync (optional)
+
+**Email sync** (in the app header) marks an Applied posting as Rejected when a rejection email
+for it arrives. It only acts when the wording is clearly a rejection and the company matches
+exactly one in-progress application. Anything unclear is listed on the page for you to check,
+and every change can be undone.
+
+First apply the new migration: `npx supabase db push`.
+
+### Gmail (no server setup)
+
+Each user sets it up on the **Email sync** page: **Create sync key**, then paste the script it
+shows into a new Google Apps Script project and run `setup` once. The script runs in their own
+Google account every 10 minutes and sends new mail to `/api/email/sync`. Only emails that look
+like rejections are stored. Everything else is read and thrown away.
+
+### Outlook / Microsoft 365, e.g. a university mailbox (one-time server setup)
+
+1. Sign in at <https://entra.microsoft.com> and open **App registrations → New registration**.
+   If your university account isn't allowed to register apps, sign in with a free personal
+   Microsoft account instead. That works too.
+   - **Name:** `Internship Tracker`
+   - **Supported account types:** _Accounts in any organizational directory (Multitenant)_
+   - **Redirect URI:** platform **Web**, `https://your-app.vercel.app/api/email/microsoft/callback`
+     (add `http://localhost:3000/api/email/microsoft/callback` too if you develop locally,
+     under **Authentication**).
+2. **API permissions → Add a permission → Microsoft Graph → Delegated:** add `Mail.Read`,
+   `User.Read` and `offline_access`. The app only ever reads mail.
+3. **Certificates & secrets → New client secret.** Copy its **Value** right away. Note when it
+   expires (at most 24 months) and make a new one before then.
+4. In Vercel, add these **server-only** variables, then redeploy:
+
+   | Name                      | Value                                                                                   |
+   | ------------------------- | --------------------------------------------------------------------------------------- |
+   | `MICROSOFT_CLIENT_ID`     | The app's **Application (client) ID** from its Overview page                            |
+   | `MICROSOFT_CLIENT_SECRET` | The secret **Value** from step 3                                                        |
+   | `EMAIL_ENCRYPTION_KEY`    | Output of `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
+
+   `EMAIL_ENCRYPTION_KEY` encrypts the saved Microsoft sign-ins. If you change or lose it,
+   everyone has to connect their mailbox again.
+
+5. On the **Email sync** page, click **Connect Outlook mailbox** and sign in with the university
+   account. If Microsoft says **"Need admin approval"**, the university only lets IT-approved
+   apps read mail. Ask its IT service desk to approve the app, or forward job-related mail to
+   Gmail instead.
+
+A user's connected Outlook mailboxes are checked each time their Gmail script runs (about every
+10 minutes), or when they click **Check now**. So keep the Gmail script running even if you
+mostly care about Outlook.
+
 ## Good to know
 
 - **Free-tier pause:** Supabase pauses free projects after about a week with no activity.
