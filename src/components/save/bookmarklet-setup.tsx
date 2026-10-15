@@ -137,6 +137,10 @@ export function BookmarkletSetup() {
             It never creates a new posting, and a posting they&apos;re already a contact on
             can&apos;t be picked twice.
           </li>
+          <li>
+            The posting is tagged <strong>LinkedIn: connection sent</strong> (adding any contact
+            with a LinkedIn link does this).
+          </li>
         </ul>
       </section>
     </>
