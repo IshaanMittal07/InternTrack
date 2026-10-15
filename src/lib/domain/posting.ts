@@ -1,11 +1,15 @@
 import { load } from "cheerio";
 
+import { classifyVisaSponsorship, type VisaSponsorship } from "./visa";
+
 export type PostingDetails = {
   company?: string;
   role_title?: string;
   location?: string;
   deadline?: string;
   posting_notes?: string;
+  /** Judged from the description; absent when it couldn't be told. */
+  visa_sponsorship?: VisaSponsorship;
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -74,15 +78,28 @@ function htmlToText(html: string): string {
   return load(html.replace(/<(?:br|\/p|\/div|\/li|\/h[1-6])\b[^>]*>/gi, " $&")).text();
 }
 
-function cleanDescription(value: unknown): string | undefined {
+/** The description as plain text, in full. */
+function descriptionText(value: unknown): string | undefined {
   const source = text(value);
   if (!source) return undefined;
   let content = htmlToText(source);
   // Some sites (LinkedIn, Greenhouse) HTML-escape the description HTML, so
   // one pass leaves literal tags behind; strip them with a second pass.
   if (/<[a-z/][^>]*>/i.test(content)) content = htmlToText(content);
-  content = content.replace(/\s+/g, " ").trim();
-  return content.slice(0, 10_000) || undefined;
+  return content.replace(/\s+/g, " ").trim() || undefined;
+}
+
+/**
+ * Sets the description and the sponsorship judged from it. Sponsorship is
+ * read from the full text, since it is often stated at the very end. Only a
+ * full job description is `complete`; a meta description is a snippet.
+ */
+function addDescription(result: PostingDetails, value: unknown, complete: boolean) {
+  const full = descriptionText(value);
+  if (!full) return;
+  result.posting_notes = full.slice(0, 10_000);
+  const visa = classifyVisaSponsorship(full, { complete });
+  if (visa) result.visa_sponsorship = visa;
 }
 
 export function parsePostingHtml(html: string): PostingDetails {
@@ -98,12 +115,11 @@ export function parsePostingHtml(html: string): PostingDetails {
       const role = text(job.title);
       const location = jobLocation(job.jobLocation);
       const deadline = dateOnly(job.validThrough);
-      const notes = cleanDescription(job.description);
       if (company) result.company = company;
       if (role) result.role_title = role;
       if (location) result.location = location;
       if (deadline) result.deadline = deadline;
-      if (notes) result.posting_notes = notes;
+      addDescription(result, job.description, true);
       return result;
     } catch {
       // Continue to the next JSON-LD block or metadata fallback.
@@ -119,7 +135,7 @@ export function parsePostingHtml(html: string): PostingDetails {
     text($('meta[name="description"]').attr("content"));
   if (company) result.company = company;
   if (role) result.role_title = role;
-  if (notes) result.posting_notes = cleanDescription(notes);
+  addDescription(result, notes, false);
   return result;
 }
 const GREENHOUSE_HOSTS = new Set(["boards.greenhouse.io", "job-boards.greenhouse.io"]);
@@ -154,12 +170,11 @@ export function parseGreenhouseJob(value: unknown): PostingDetails {
   const role = text(job.title);
   const location = text(asRecord(job.location)?.name);
   const deadline = dateOnly(job.application_deadline);
-  const notes = cleanDescription(job.content);
   if (company) result.company = company;
   if (role) result.role_title = role;
   if (location) result.location = location;
   if (deadline) result.deadline = deadline;
-  if (notes) result.posting_notes = notes;
+  addDescription(result, job.content, true);
   return result;
 }
 

@@ -30,6 +30,8 @@ describe("parsePostingHtml", () => {
       location: "Seattle, WA",
       deadline: "2027-02-01",
       posting_notes: "Build useful things.",
+      // A full description that never mentions sponsorship.
+      visa_sponsorship: "maybe",
     });
   });
 
@@ -43,6 +45,25 @@ describe("parsePostingHtml", () => {
       role_title: "Designer at Acme",
       posting_notes: "Join our team & grow.",
     });
+  });
+
+  it("judges visa sponsorship from the full description", () => {
+    const html = `<script type="application/ld+json">${JSON.stringify({
+      "@type": "JobPosting",
+      title: "Intern",
+      description: `<p>${"Build things. ".repeat(1000)}</p><p>We are unable to sponsor visas.</p>`,
+    })}</script>`;
+    const details = parsePostingHtml(html);
+    expect(details.visa_sponsorship).toBe("no");
+    // The saved notes are cut short, but the statement at the end still counted.
+    expect(details.posting_notes).toHaveLength(10_000);
+  });
+
+  it("only takes an explicit statement from a meta description", () => {
+    const meta = (content: string) =>
+      parsePostingHtml(`<meta property="og:description" content="${content}">`);
+    expect(meta("Join our team.").visa_sponsorship).toBeUndefined();
+    expect(meta("Visa sponsorship available.").visa_sponsorship).toBe("yes");
   });
 
   it("strips description HTML that was escaped twice", () => {
@@ -101,6 +122,8 @@ describe("parseGreenhouseJob", () => {
       role_title: "Engineering Intern",
       location: "San Francisco, CA",
       posting_notes: "About & more",
+      // A full description that never mentions sponsorship.
+      visa_sponsorship: "maybe",
     });
   });
 
