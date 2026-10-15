@@ -24,6 +24,25 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"email_events": {
+                  Row: {
+                    "created_at": string,"id": string,"message_id": string,"opportunity_id": string | null,"outcome": Database["public"]['Enums']["email_outcome"],"previous_stage": Database["public"]['Enums']["application_stage"] | null,"received_at": string,"sender": string,"source": Database["public"]['Enums']["email_source"],"subject": string,"undone_at": string | null,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"message_id": string,"opportunity_id"?: string | null,"outcome": Database["public"]['Enums']["email_outcome"],"previous_stage"?: Database["public"]['Enums']["application_stage"] | null,"received_at": string,"sender": string,"source": Database["public"]['Enums']["email_source"],"subject": string,"undone_at"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"message_id"?: string,"opportunity_id"?: string | null,"outcome"?: Database["public"]['Enums']["email_outcome"],"previous_stage"?: Database["public"]['Enums']["application_stage"] | null,"received_at"?: string,"sender"?: string,"source"?: Database["public"]['Enums']["email_source"],"subject"?: string,"undone_at"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "email_events_opportunity_id_fkey"
+      columns: ["opportunity_id"]
+isOneToOne: false
+      referencedRelation: "opportunities"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"job_boards": {
                   Row: {
                     "created_at": string,"id": string,"name": string,"url": string,"user_id": string
@@ -100,12 +119,34 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "seed_default_tags":
+            "email_connection_delete":
+{ Args: { "p_id": string }; Returns: boolean
+                           },"email_connection_list":
+{ Args: Record<PropertyKey, never>; Returns: { "account_email": string,"created_at": string,"id": string,"last_error": string | null,"last_synced_at": string | null }[]
+                           },"email_connection_save":
+{ Args: { "p_account_email": string,"p_refresh_token_enc": string }; Returns: undefined
+                           },"email_sync_applied":
+{ Args: { "p_token"?: string }; Returns: { "application_stage": Database["public"]['Enums']["application_stage"] | null,"company": string,"date_applied": string | null,"id": string,"role_title": string | null }[]
+                           },"email_sync_connections":
+{ Args: { "p_token"?: string }; Returns: { "account_email": string,"id": string,"last_synced_at": string | null,"refresh_token_enc": string }[]
+                           },"email_sync_record":
+{ Args: { "p_message_id": string,"p_opportunity_id"?: string,"p_outcome": Database["public"]['Enums']["email_outcome"],"p_received_at": string,"p_sender": string,"p_source": Database["public"]['Enums']["email_source"],"p_subject": string,"p_token"?: string }; Returns: Database["public"]['Enums']["email_outcome"] | null
+                           },"email_sync_token_create":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },"email_sync_token_created_at":
+{ Args: Record<PropertyKey, never>; Returns: string | null
+                           },"email_sync_token_delete":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },"email_sync_update_connection":
+{ Args: { "p_error"?: string,"p_id": string,"p_refresh_token_enc"?: string,"p_synced_at"?: string,"p_token"?: string }; Returns: undefined
+                           },"email_undo_rejection":
+{ Args: { "p_event_id": string }; Returns: boolean
+                           },"seed_default_tags":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            }
           }
           Enums: {
-            "application_stage": "submitted"|"online_assessment"|"interviewing"|"offer"|"rejected"|"withdrawn","linkedin_connection": "not_sent"|"sent","opportunity_category": "applied"|"planning"|"interested","outreach_status": "not_sent"|"sent"|"read"|"replied","priority_level": "low"|"medium"|"high","referral_status": "not_requested"|"requested"|"received"|"declined","tag_color": "terracotta"|"sage"|"amber"|"slate"|"plum"|"teal"
+            "application_stage": "submitted"|"online_assessment"|"interviewing"|"offer"|"rejected"|"withdrawn","email_outcome": "rejected"|"unmatched"|"ambiguous"|"skipped","email_source": "gmail"|"microsoft","linkedin_connection": "not_sent"|"sent","opportunity_category": "applied"|"planning"|"interested","outreach_status": "not_sent"|"sent"|"read"|"replied","priority_level": "low"|"medium"|"high","referral_status": "not_requested"|"requested"|"received"|"declined","tag_color": "terracotta"|"sage"|"amber"|"slate"|"plum"|"teal"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -221,7 +262,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "application_stage": ["submitted", "online_assessment", "interviewing", "offer", "rejected", "withdrawn"],"linkedin_connection": ["not_sent", "sent"],"opportunity_category": ["applied", "planning", "interested"],"outreach_status": ["not_sent", "sent", "read", "replied"],"priority_level": ["low", "medium", "high"],"referral_status": ["not_requested", "requested", "received", "declined"],"tag_color": ["terracotta", "sage", "amber", "slate", "plum", "teal"]
+            "application_stage": ["submitted", "online_assessment", "interviewing", "offer", "rejected", "withdrawn"],"email_outcome": ["rejected", "unmatched", "ambiguous", "skipped"],"email_source": ["gmail", "microsoft"],"linkedin_connection": ["not_sent", "sent"],"opportunity_category": ["applied", "planning", "interested"],"outreach_status": ["not_sent", "sent", "read", "replied"],"priority_level": ["low", "medium", "high"],"referral_status": ["not_requested", "requested", "received", "declined"],"tag_color": ["terracotta", "sage", "amber", "slate", "plum", "teal"]
           }
         }
 } as const
