@@ -19,6 +19,9 @@ export function SiteHeader() {
           <Link href="/tags" className={buttonClasses("ghost", "sm")}>
             Manage tags
           </Link>
+          <Link href="/email" className={buttonClasses("ghost", "sm")}>
+            Email sync
+          </Link>
           <a href="/export" className={buttonClasses("ghost", "sm")} download>
             Export CSV
           </a>
