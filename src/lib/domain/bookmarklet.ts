@@ -35,8 +35,44 @@ const SOURCE = `(function () {
   if (!window.open(u.href, "_blank")) location.href = u.href;
 })();`;
 
+/**
+ * The "Add LinkedIn contact" bookmark. Clicked on a LinkedIn profile, it reads
+ * the name, headline and current company from the page (the user is signed in
+ * there; LinkedIn blocks reading profiles from a server) and opens
+ * /save/contact, which adds the person to a posting that is already saved.
+ * Only raw text is sent; the app cleans it up.
+ */
+const CONTACT_SOURCE = `(function () {
+  var d = document;
+  function text(sel) {
+    var el = d.querySelector(sel);
+    return el ? (el.textContent || "").replace(/\\s+/g, " ").trim() : "";
+  }
+  var h1 = d.querySelector("main h1") || d.querySelector("h1");
+  var name = h1 ? (h1.textContent || "").replace(/\\s+/g, " ").trim() : "";
+  var headline = text("main .text-body-medium");
+  var btn = d.querySelector('[aria-label^="Current company"]');
+  var company = btn ? btn.getAttribute("aria-label") || "" : "";
+  var u = new URL("/save/contact", __ORIGIN__);
+  u.searchParams.set("url", location.href);
+  if (name) u.searchParams.set("name", name.slice(0, 300));
+  if (headline) u.searchParams.set("headline", headline.slice(0, 300));
+  if (company) u.searchParams.set("company", company.slice(0, 300));
+  u.searchParams.set("title", d.title.slice(0, 300));
+  if (!window.open(u.href, "_blank")) location.href = u.href;
+})();`;
+
+function toHref(source: string, origin: string): string {
+  const code = source.replace("__ORIGIN__", JSON.stringify(origin)).replace(/\s*\n\s*/g, " ");
+  return `javascript:${encodeURIComponent(code)}`;
+}
+
 /** The bookmark's address, for the app running at `origin`. */
 export function bookmarkletHref(origin: string): string {
-  const code = SOURCE.replace("__ORIGIN__", JSON.stringify(origin)).replace(/\s*\n\s*/g, " ");
-  return `javascript:${encodeURIComponent(code)}`;
+  return toHref(SOURCE, origin);
+}
+
+/** The "Add LinkedIn contact" bookmark's address, for the app running at `origin`. */
+export function contactBookmarkletHref(origin: string): string {
+  return toHref(CONTACT_SOURCE, origin);
 }
