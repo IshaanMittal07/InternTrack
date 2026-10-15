@@ -3,6 +3,7 @@ import {
   PRIORITY_LABELS,
   REFERRAL_LABELS,
   STAGE_LABELS,
+  VISA_LABELS,
 } from "@/lib/domain/constants";
 import type { OpportunityWithRelations, Tag } from "@/lib/domain/types";
 
@@ -39,6 +40,7 @@ export const EXPORT_HEADERS = [
   "Date applied",
   "Stage",
   "Priority",
+  "Visa sponsorship",
   "Referral status",
   "Referred by",
   "Tags",
@@ -77,6 +79,7 @@ export function buildExportRows(
       o.date_applied ?? "",
       o.application_stage ? STAGE_LABELS[o.application_stage] : "",
       PRIORITY_LABELS[o.priority].replace(" priority", ""),
+      o.visa_sponsorship ? VISA_LABELS[o.visa_sponsorship] : "",
       REFERRAL_LABELS[o.referral_status].replace("Referral ", ""),
       referrer?.name ?? "",
       o.tagIds

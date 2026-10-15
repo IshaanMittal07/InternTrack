@@ -12,7 +12,10 @@ import {
   PRIORITY_LABELS,
   STAGES,
   STAGE_LABELS,
+  VISA_LABELS,
+  VISA_SPONSORSHIPS,
   type Category,
+  type VisaSponsorship,
 } from "@/lib/domain/constants";
 import type { Opportunity } from "@/lib/domain/types";
 
@@ -30,6 +33,7 @@ type Values = Partial<
     | "application_stage"
     | "priority"
     | "linkedin_connection"
+    | "visa_sponsorship"
     | "notes"
   >
 >;
@@ -57,11 +61,15 @@ export function OpportunityFields({
   const [location, setLocation] = useState(values.location ?? "");
   const [deadline, setDeadline] = useState(values.deadline ?? "");
   const [postingNotes, setPostingNotes] = useState(values.posting_notes ?? "");
+  const [visaSponsorship, setVisaSponsorship] = useState<VisaSponsorship | "">(
+    values.visa_sponsorship ?? "",
+  );
   const companyRef = useRef(company);
   const roleTitleRef = useRef(roleTitle);
   const locationRef = useRef(location);
   const deadlineRef = useRef(deadline);
   const postingNotesRef = useRef(postingNotes);
+  const visaSponsorshipRef = useRef(visaSponsorship);
   const [autofillPending, setAutofillPending] = useState(false);
   const [autofillStatus, setAutofillStatus] = useState("");
   const postingUrlRef = useRef(postingUrl);
@@ -92,7 +100,10 @@ export function OpportunityFields({
       });
       const result = (await response.json()) as {
         details?: Partial<
-          Pick<Opportunity, "company" | "role_title" | "location" | "deadline" | "posting_notes">
+          Pick<
+            Opportunity,
+            "company" | "role_title" | "location" | "deadline" | "posting_notes"
+          > & { visa_sponsorship: VisaSponsorship }
         >;
         error?: string;
       };
@@ -127,6 +138,11 @@ export function OpportunityFields({
         postingNotesRef.current = result.details.posting_notes;
         setPostingNotes(result.details.posting_notes);
         filled.push("posting notes");
+      }
+      if (!visaSponsorshipRef.current && result.details.visa_sponsorship) {
+        visaSponsorshipRef.current = result.details.visa_sponsorship;
+        setVisaSponsorship(result.details.visa_sponsorship);
+        filled.push("visa sponsorship");
       }
       setAutofillStatus(
         filled.length ? `Filled ${filled.join(", ")}.` : "No empty fields could be filled.",
@@ -309,6 +325,35 @@ export function OpportunityFields({
           {LINKEDIN_CONNECTIONS.map((s) => (
             <option key={s} value={s}>
               {s === "sent" ? "Connection sent" : "Connection unsent"}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field
+        id={id("visa_sponsorship")}
+        label="Visa sponsorship"
+        hint="Filled in from the job description when the posting link can be read."
+        error={errors.visa_sponsorship}
+      >
+        <select
+          {...aria("visa_sponsorship")}
+          aria-describedby={
+            errors.visa_sponsorship
+              ? `${id("visa_sponsorship")}-error`
+              : `${id("visa_sponsorship")}-hint`
+          }
+          value={visaSponsorship}
+          onChange={(event) => {
+            const value = event.target.value as VisaSponsorship | "";
+            visaSponsorshipRef.current = value;
+            setVisaSponsorship(value);
+          }}
+          className="input"
+        >
+          <option value="">Not checked</option>
+          {VISA_SPONSORSHIPS.map((v) => (
+            <option key={v} value={v}>
+              {VISA_LABELS[v]}
             </option>
           ))}
         </select>

@@ -12,6 +12,8 @@ import {
   REFERRAL_TONES,
   STAGE_LABELS,
   STAGE_TONES,
+  VISA_LABELS,
+  VISA_TONES,
 } from "@/lib/domain/constants";
 import { deadlineLabel, deadlineStatus, formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
 import { HIGHLIGHT_BORDERS } from "@/components/opportunities/highlight";
@@ -86,6 +88,11 @@ export function OpportunityCard({
           )}
           {o.term && <Pill>{o.term}</Pill>}
           {linkedin && <Pill tone={LINKEDIN_TONES[linkedin]}>{LINKEDIN_LABELS[linkedin]}</Pill>}
+          {o.visa_sponsorship && (
+            <Pill tone={VISA_TONES[o.visa_sponsorship]}>
+              Visa: {VISA_LABELS[o.visa_sponsorship]}
+            </Pill>
+          )}
         </div>
 
         {o.posting_notes && (

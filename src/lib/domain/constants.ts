@@ -8,6 +8,7 @@ export type Priority = Enums<"priority_level">;
 export type TagColor = Enums<"tag_color">;
 export type OutreachStatus = Enums<"outreach_status">;
 export type LinkedinConnection = Enums<"linkedin_connection">;
+export type VisaSponsorship = Enums<"visa_sponsorship">;
 
 export const CATEGORIES = ["applied", "planning", "interested"] as const satisfies Category[];
 export const STAGES = [
@@ -26,6 +27,12 @@ export const REFERRAL_STATUSES = [
 ] as const satisfies ReferralStatus[];
 export const PRIORITIES = ["low", "medium", "high"] as const satisfies Priority[];
 export const LINKEDIN_CONNECTIONS = ["not_sent", "sent"] as const satisfies LinkedinConnection[];
+export const VISA_SPONSORSHIPS = [
+  "no",
+  "maybe",
+  "highly_likely",
+  "yes",
+] as const satisfies VisaSponsorship[];
 export const OUTREACH_STATUSES = [
   "not_sent",
   "sent",
@@ -107,6 +114,20 @@ export const LINKEDIN_LABELS: Record<LinkedinConnection, string> = {
 export const LINKEDIN_TONES: Record<LinkedinConnection, PillTone> = {
   not_sent: "neutral",
   sent: "teal",
+};
+
+export const VISA_LABELS: Record<VisaSponsorship, string> = {
+  no: "No",
+  maybe: "Maybe",
+  highly_likely: "Highly likely",
+  yes: "Yes",
+};
+
+export const VISA_TONES: Record<VisaSponsorship, PillTone> = {
+  no: "danger",
+  maybe: "neutral",
+  highly_likely: "sage",
+  yes: "success",
 };
 
 export const PRIORITY_LABELS: Record<Priority, string> = {

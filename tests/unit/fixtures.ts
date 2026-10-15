@@ -45,6 +45,7 @@ export function makeOpportunity(
     referred_by_contact_id: null,
     priority: "medium",
     linkedin_connection: null,
+    visa_sponsorship: null,
     notes: null,
     contacts: [],
     tagIds: [],

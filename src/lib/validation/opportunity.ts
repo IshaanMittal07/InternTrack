@@ -6,6 +6,7 @@ import {
   PRIORITIES,
   REFERRAL_STATUSES,
   STAGES,
+  VISA_SPONSORSHIPS,
 } from "@/lib/domain/constants";
 
 import {
@@ -36,6 +37,7 @@ export const opportunitySchema = z
     application_stage: optionalEnum(STAGES),
     priority: optionalEnum(PRIORITIES).transform((p) => p ?? "medium"),
     linkedin_connection: optionalEnum(LINKEDIN_CONNECTIONS).transform((v) => v ?? null),
+    visa_sponsorship: optionalEnum(VISA_SPONSORSHIPS).transform((v) => v ?? null),
     notes: optionalText(20_000, "Notes"),
   })
   .superRefine((value, ctx) => {

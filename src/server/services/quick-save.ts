@@ -85,6 +85,7 @@ export async function quickSavePosting(
     location: details.location,
     posting_notes: details.posting_notes,
     deadline: details.deadline,
+    visa_sponsorship: details.visa_sponsorship,
     date_applied: today,
   });
   if (!created.ok) return created;
