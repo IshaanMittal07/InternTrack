@@ -5,8 +5,21 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { bookmarkletHref, contactBookmarkletHref } from "@/lib/domain/bookmarklet";
 
-/** A bookmark button to drag onto the bookmarks bar, plus a copy-address fallback. */
-function DraggableBookmark({ href, label }: { href: (origin: string) => string; label: string }) {
+/**
+ * A bookmark button to drag onto the bookmarks bar, plus a copy-address
+ * fallback. Browsers show no icon for javascript: bookmarks, so the emoji at
+ * the start of the button's text (which becomes the bookmark's name) is its icon.
+ */
+function DraggableBookmark({
+  href,
+  icon,
+  label,
+}: {
+  href: (origin: string) => string;
+  icon: string;
+  label: string;
+}) {
+  const name = `${icon} ${label}`;
   const link = useRef<HTMLAnchorElement>(null);
   const [copied, setCopied] = useState(false);
 
@@ -35,13 +48,13 @@ function DraggableBookmark({ href, label }: { href: (origin: string) => string; 
             onClick={(event) => event.preventDefault()}
             className="ml-1 inline-block cursor-grab rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-on-accent shadow-card"
           >
-            + {label}
+            {name}
           </a>
         </li>
       </ol>
       <p className="mt-4 text-sm text-ink-muted">
         Can&apos;t drag it? Copy its address below, then add a new bookmark by hand named &quot;
-        {label}&quot; and paste the address as its URL.
+        {name}&quot; and paste the address as its URL.
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <Button variant="secondary" size="sm" onClick={copy}>
@@ -70,7 +83,7 @@ export function BookmarkletSetup() {
         <h2 id="install-heading" className="text-lg font-semibold">
           Add the bookmark
         </h2>
-        <DraggableBookmark href={bookmarkletHref} label="Save to tracker" />
+        <DraggableBookmark href={bookmarkletHref} icon="💼" label="Save to tracker" />
       </section>
 
       <section aria-labelledby="use-heading" className="rounded-xl bg-surface p-5 shadow-card">
@@ -106,7 +119,7 @@ export function BookmarkletSetup() {
           A second bookmark that adds the person whose LinkedIn profile you&apos;re viewing as a
           contact on a posting you already saved.
         </p>
-        <DraggableBookmark href={contactBookmarkletHref} label="Add LinkedIn contact" />
+        <DraggableBookmark href={contactBookmarkletHref} icon="👤" label="Add LinkedIn contact" />
         <ul className="mt-4 list-disc space-y-2 pl-5 text-ink">
           <li>
             Open someone&apos;s profile on LinkedIn and click <strong>Add LinkedIn contact</strong>.
