@@ -37,7 +37,7 @@ const SOURCE = `(function () {
 
 /**
  * The "Add LinkedIn contact" bookmark. Clicked on a LinkedIn profile, it reads
- * the name, headline and current company from the page (the user is signed in
+ * the name, headline, current company and Experience entries from the page (the user is signed in
  * there; LinkedIn blocks reading profiles from a server) and opens
  * /save/contact, which adds the person to a posting that is already saved.
  * Only raw text is sent; the app cleans it up.
@@ -53,11 +53,34 @@ const CONTACT_SOURCE = `(function () {
   var headline = text("main .text-body-medium");
   var btn = d.querySelector('[aria-label^="Current company"]');
   var company = btn ? btn.getAttribute("aria-label") || "" : "";
+  var exp = [];
+  var anchor = d.getElementById("experience");
+  var sec = anchor && anchor.closest ? anchor.closest("section") : null;
+  if (!sec) {
+    var hs = d.querySelectorAll("main section h2");
+    for (var i = 0; i < hs.length; i++) {
+      if (/^\\s*Experience\\s*$/.test(hs[i].textContent || "")) { sec = hs[i].closest("section"); break; }
+    }
+  }
+  if (sec) {
+    var lis = sec.querySelectorAll("li");
+    for (var j = 0; j < lis.length && exp.length < 6; j++) {
+      var up = lis[j].parentElement && lis[j].parentElement.closest("li");
+      if (up && sec.contains(up)) continue;
+      var lines = [], spans = lis[j].querySelectorAll('span[aria-hidden="true"]');
+      for (var k = 0; k < spans.length && lines.length < 12; k++) {
+        var t = (spans[k].textContent || "").replace(/\\s+/g, " ").trim();
+        if (t && t !== lines[lines.length - 1]) lines.push(t.slice(0, 200));
+      }
+      if (lines.length) exp.push(lines);
+    }
+  }
   var u = new URL("/save/contact", __ORIGIN__);
   u.searchParams.set("url", location.href);
   if (name) u.searchParams.set("name", name.slice(0, 300));
   if (headline) u.searchParams.set("headline", headline.slice(0, 300));
   if (company) u.searchParams.set("company", company.slice(0, 300));
+  if (exp.length) u.searchParams.set("experience", JSON.stringify(exp));
   u.searchParams.set("title", d.title.slice(0, 300));
   if (!window.open(u.href, "_blank")) location.href = u.href;
 })();`;

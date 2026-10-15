@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import { contactBookmarkletHref } from "@/lib/domain/bookmarklet";
 import {
   canonicalLinkedInProfileUrl,
+  parseExperience,
   parseLinkedInProfile,
+  roleAt,
   sameCompany,
 } from "@/lib/domain/linkedin";
 
@@ -13,16 +15,33 @@ function runContactBookmarklet({
   title,
   elements = {},
   companyLabel,
+  experience,
 }: {
   href: string;
   title: string;
   elements?: Record<string, string>;
   companyLabel?: string;
+  /** Each top-level Experience entry's span texts. */
+  experience?: string[][];
 }): URL {
   const code = decodeURIComponent(contactBookmarkletHref("https://tracker.example").slice(11));
   const location = { href };
+  const spans = (lines: string[]) => lines.map((textContent) => ({ textContent }));
+  // Every entry also holds a nested <li> (as grouped roles do), which must be skipped.
+  const lis = (experience ?? []).flatMap((lines) => {
+    const top = { parentElement: { closest: () => null }, querySelectorAll: () => spans(lines) };
+    const nested = {
+      parentElement: { closest: () => top },
+      querySelectorAll: () => spans(["Nested", "Jan 2020 - Present"]),
+    };
+    return [top, nested];
+  });
+  const section = { querySelectorAll: () => lis, contains: () => true };
   const document = {
     title,
+    getElementById: (id: string) =>
+      id === "experience" && experience ? { closest: () => section } : null,
+    querySelectorAll: () => [],
     querySelector: (selector: string) => {
       if (selector === '[aria-label^="Current company"]') {
         return companyLabel ? { getAttribute: () => companyLabel } : null;
@@ -70,6 +89,26 @@ describe("contact bookmarklet", () => {
     expect(opened.searchParams.get("title")).toBe("(3) Jane Doe | LinkedIn");
   });
 
+  it("sends the text of each top-level Experience entry", () => {
+    const opened = runContactBookmarklet({
+      href: "https://www.linkedin.com/in/jane-doe/",
+      title: "Jane Doe | LinkedIn",
+      experience: [
+        [
+          "Technical  Recruiter",
+          "Shopify · Full-time",
+          "Shopify · Full-time",
+          "Jan 2024 - Present",
+        ],
+        ["Intern", "Stripe · Internship", "May 2023 - Aug 2023"],
+      ],
+    });
+    expect(JSON.parse(opened.searchParams.get("experience")!)).toEqual([
+      ["Technical Recruiter", "Shopify · Full-time", "Jan 2024 - Present"],
+      ["Intern", "Stripe · Internship", "May 2023 - Aug 2023"],
+    ]);
+  });
+
   it("sends only the link and title when the page has none of those parts", () => {
     const opened = runContactBookmarklet({ href: "https://www.linkedin.com/feed/", title: "Feed" });
     expect([...opened.searchParams.keys()]).toEqual(["url", "title"]);
@@ -110,6 +149,7 @@ describe("parseLinkedInProfile", () => {
       title: "Technical Recruiter",
       company: "Shopify Inc.",
       linkedin_url: "https://www.linkedin.com/in/jane-doe/",
+      experience: [],
     });
   });
 
@@ -148,7 +188,71 @@ describe("parseLinkedInProfile", () => {
       title: "",
       company: "",
       linkedin_url: "",
+      experience: [],
     });
+  });
+});
+
+describe("parseExperience", () => {
+  const single = [
+    "Software Engineer Intern",
+    "Shopify · Internship",
+    "May 2025 - Aug 2025 · 4 mos",
+  ];
+  const grouped = [
+    "Google",
+    "Full-time · 3 yrs 2 mos",
+    "Toronto, Ontario, Canada",
+    "Senior Recruiter",
+    "Jan 2024 - Present · 1 yr 10 mos",
+    "University Recruiter",
+    "Sep 2022 - Dec 2023 · 1 yr 4 mos",
+  ];
+
+  it("reads a single role and its company", () => {
+    expect(parseExperience(JSON.stringify([single]))).toEqual([
+      { role: "Software Engineer Intern", company: "Shopify" },
+    ]);
+  });
+
+  it("takes the newest role from a company with several roles", () => {
+    expect(parseExperience(JSON.stringify([grouped]))).toEqual([
+      { role: "Senior Recruiter", company: "Google" },
+    ]);
+  });
+
+  it("ignores entries without dates and malformed input", () => {
+    expect(
+      parseExperience(JSON.stringify([["Show all 9 experiences"], "x", [1, 2], single])),
+    ).toEqual([{ role: "Software Engineer Intern", company: "Shopify" }]);
+    expect(parseExperience("not json")).toEqual([]);
+    expect(parseExperience('{"a":1}')).toEqual([]);
+    expect(parseExperience(undefined)).toEqual([]);
+  });
+
+  it("finds their role at a given company", () => {
+    const experience = parseExperience(JSON.stringify([grouped, single]));
+    expect(roleAt(experience, "Shopify Inc.")).toBe("Software Engineer Intern");
+    expect(roleAt(experience, "Google LLC")).toBe("Senior Recruiter");
+    expect(roleAt(experience, "Stripe")).toBeUndefined();
+  });
+
+  it("uses the role at their current company over the headline", () => {
+    const parsed = parseLinkedInProfile({
+      headline: "CS @ Waterloo | ex-Shopify",
+      company: "Current company: Google. Click to skip to experience card",
+      experience: JSON.stringify([single, grouped]),
+    });
+    expect(parsed.title).toBe("Senior Recruiter");
+    expect(parsed.company).toBe("Google");
+  });
+
+  it("falls back to their newest role, then the headline", () => {
+    expect(parseLinkedInProfile({ experience: JSON.stringify([single]) })).toMatchObject({
+      title: "Software Engineer Intern",
+      company: "Shopify",
+    });
+    expect(parseLinkedInProfile({ headline: "Recruiter at Stripe" }).title).toBe("Recruiter");
   });
 });
 
