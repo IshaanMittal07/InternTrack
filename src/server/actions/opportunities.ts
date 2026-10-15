@@ -9,6 +9,7 @@ import { env } from "@/lib/env";
 import * as service from "@/server/services/opportunities";
 import { fetchPostingDetails } from "@/server/services/posting-import";
 import { quickSavePosting } from "@/server/services/quick-save";
+import { checkVisaSponsorship, listVisaUnchecked } from "@/server/services/visa-check";
 
 /*
  * Server Actions are public HTTP endpoints, so each one re-verifies the
@@ -76,6 +77,20 @@ export async function quickSavePostingAction(input: {
   const { supabase, userId } = await requireUser();
   const today = todayIn(env().APP_TIMEZONE);
   const result = await quickSavePosting(supabase, userId, input, today, fetchPostingDetails);
+  if (result.ok) revalidatePath("/");
+  return result;
+}
+
+/** Ids of the postings whose visa sponsorship hasn't been set, for the "Check" button. */
+export async function listVisaUncheckedAction() {
+  const { supabase, userId } = await requireUser();
+  return listVisaUnchecked(supabase, userId);
+}
+
+/** Judges visa sponsorship for a batch of postings from their job descriptions. */
+export async function checkVisaSponsorshipAction(ids: string[]) {
+  const { supabase, userId } = await requireUser();
+  const result = await checkVisaSponsorship(supabase, userId, ids, fetchPostingDetails);
   if (result.ok) revalidatePath("/");
   return result;
 }

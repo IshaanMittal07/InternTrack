@@ -5,6 +5,7 @@ import { CategoryTabs } from "@/components/dashboard/category-tabs";
 import { FilterBar } from "@/components/dashboard/filter-bar";
 import { JobBoards } from "@/components/dashboard/job-boards";
 import { SummaryStrip } from "@/components/dashboard/summary-strip";
+import { VisaCheck } from "@/components/dashboard/visa-check";
 import { NewOpportunityButton } from "@/components/opportunities/new-opportunity-button";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
 import { OpportunityDrawer } from "@/components/opportunities/opportunity-drawer";
@@ -73,6 +74,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
 
       <SummaryStrip summary={summary} filters={filters} />
       <JobBoards boards={jobBoards} />
+      <VisaCheck unchecked={opportunities.filter((o) => !o.visa_sponsorship).length} />
       <CategoryTabs filters={filters} counts={counts} />
       <FilterBar key={filters.tab} filters={filters} tags={tags} />
       <CardLegend filters={filters} counts={highlightCounts(opportunities, filters.tab)} />
