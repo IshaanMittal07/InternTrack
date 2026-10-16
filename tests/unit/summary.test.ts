@@ -159,9 +159,35 @@ describe("postingHighlight", () => {
             linkedin_connection,
             contacts: [contact(), contact({ outreach_status })],
           }),
+        ).toBe("messaged_some");
+        expect(
+          postingHighlight({
+            ...base,
+            linkedin_connection,
+            contacts: [contact({ outreach_status }), contact({ outreach_status: "sent" })],
+          }),
         ).toBe("messaged");
       }
     }
+  });
+
+  it("is light blue for some contacts messaged and blue for all of them", () => {
+    const sent = contact({ outreach_status: "sent" });
+    expect(postingHighlight({ ...base, contacts: [sent] })).toBe("messaged");
+    expect(postingHighlight({ ...base, contacts: [sent, contact()] })).toBe("messaged_some");
+    expect(postingHighlight({ ...base, contacts: [sent, contact(), contact()] })).toBe(
+      "messaged_some",
+    );
+    expect(
+      postingHighlight({
+        ...base,
+        contacts: [
+          sent,
+          contact({ outreach_status: "read" }),
+          contact({ outreach_status: "replied" }),
+        ],
+      }),
+    ).toBe("messaged");
   });
 
   it("prefers a contact spoken to over messages and the connection status", () => {
@@ -223,6 +249,7 @@ describe("highlightCounts", () => {
       rejected: 1,
       connection_unsent: 0,
       connection_sent: 2,
+      messaged_some: 0,
       messaged: 0,
       spoken: 1,
     });

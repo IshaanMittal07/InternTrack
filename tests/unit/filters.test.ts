@@ -157,8 +157,10 @@ describe("applyFilters", () => {
   });
 
   it("filters by card outline color", () => {
-    // Quantinuum and CrowdStrike have a contact messaged; Nvidia only a connection sent.
-    expect(names(f({ color: "messaged" }))).toEqual(["CrowdStrike", "Quantinuum"]);
+    // CrowdStrike's only contact was messaged, one of Quantinuum's two was;
+    // Nvidia only has a connection sent.
+    expect(names(f({ color: "messaged" }))).toEqual(["CrowdStrike"]);
+    expect(names(f({ color: "messaged_some" }))).toEqual(["Quantinuum"]);
     expect(names(f({ color: "connection_sent" }))).toEqual(["Nvidia"]);
     expect(names(f({ color: "rejected" }))).toEqual([]);
     expect(names(f({ color: "messaged", tags: [TAG_B] }))).toEqual(["CrowdStrike"]);
