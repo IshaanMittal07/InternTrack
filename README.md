@@ -18,9 +18,8 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 - **Message status per contact:** not sent, sent, read or replied. Cards show each status,
   and the **Messages** filter finds opportunities with a contact at that status.
 - **LinkedIn connection per posting:** mark a posting's LinkedIn connection as sent or
-  unsent in its form; adding a contact to a posting marks it sent automatically. The tag
-  shows on the card and can be filtered, and disappears once you message one of its
-  contacts.
+  unsent in its form; adding a contact to a posting marks it sent automatically. It shows
+  as the card's outline color and can be filtered, until you message one of its contacts.
 - **Save to tracker bookmark:** add it once from **Save button** in the header. After
   applying, click it on the job posting and the job is saved under Applied with today's
   date (company, role, location and description filled in when the page has them). A
@@ -36,9 +35,11 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
   permanent residency or a clearance), **Yes** means it offers sponsorship, **Highly likely**
   means it welcomes students on visas (CPT/OPT, F-1, international students) or offers
   immigration support, and **Maybe** means it says sponsorship might be possible, says nothing,
-  or contradicts itself. Postings it can't read are left as "Not checked" rather than guessed.
-  **Check visa sponsorship** on the dashboard fills in existing postings, and never changes a
-  value you set yourself.
+  or contradicts itself, and is also used when the posting can't be read (no link, closed,
+  or sign-in only). LinkedIn job links are read through LinkedIn's public job page, which has
+  the full description. The dashboard checks any posting without a value on its own when
+  it opens (**Check visa sponsorship** runs it again); a site that is briefly unreachable is
+  tried again next time, and a value you set yourself is never changed.
 - **Email sync:** connect Gmail (a small Apps Script in your own Google account) and Outlook /
   Microsoft 365 (read-only sign-in). When a rejection email arrives, the matching Applied
   posting is marked Rejected. It acts only on clear rejection wording that matches exactly one
@@ -46,8 +47,8 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
   be undone. Setup: "Email sync" in [DEPLOYMENT.md](DEPLOYMENT.md).
 - **Job boards:** save quick links to the sites you search (e.g. Glassdoor, InternInsider)
   right on the dashboard.
-- **Cards** show company, role, stage, deadline, referral status, tags, and contact
-  progress (e.g. "2 of 3 contacts spoken to").
+- **Cards** show company, role, stage, deadline, referral status, visa sponsorship, tags,
+  and contact progress (e.g. "2 of 3 contacts spoken to").
 - **Card outlines** color-code each posting, with a legend above the cards: red when
   rejected, green once a contact has been spoken to, purple once a contact has been
   messaged, blue when the LinkedIn connection is sent, yellow when it is unsent (checked
