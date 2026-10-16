@@ -50,14 +50,14 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 - **Cards** show company, role, stage, deadline, referral status, visa sponsorship, tags,
   and contact progress (e.g. "2 of 3 contacts spoken to").
 - **Card outlines** color-code each posting, with a legend above the cards: red when
-  rejected, green once a contact has been spoken to, purple once a contact has been
-  messaged, blue when the LinkedIn connection is sent, yellow when it is unsent (checked
-  in that order). Click a color in the legend to show only those postings; click it again
-  to show all.
+  rejected, green once a contact has been spoken to, blue once every contact has been
+  messaged, light blue once some have, teal when the LinkedIn connection is sent, yellow
+  when it is unsent (checked in that order). Click a color in the legend to show only those
+  postings; click it again to show all.
 - **Detail drawer** for each opportunity:
   - Edit every field.
-  - **Contacts:** add, edit and delete people, with a one-click "spoken with" toggle,
-    last-contacted and next follow-up dates.
+  - **Contacts:** add, edit and delete people, with one-click "message sent" and "spoken
+    with" toggles, last-contacted and next follow-up dates.
   - **Referral:** status, plus which contact referred you.
   - **Tags:** searchable multi-select. Type a new name to create a tag on the spot.
   - **Move between categories:** moving to Applied asks for the date applied (default
