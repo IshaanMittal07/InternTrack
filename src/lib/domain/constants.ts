@@ -106,16 +106,6 @@ export const OUTREACH_TONES: Record<OutreachStatus, PillTone> = {
   replied: "success",
 };
 
-export const LINKEDIN_LABELS: Record<LinkedinConnection, string> = {
-  not_sent: "LinkedIn: connection unsent",
-  sent: "LinkedIn: connection sent",
-};
-
-export const LINKEDIN_TONES: Record<LinkedinConnection, PillTone> = {
-  not_sent: "neutral",
-  sent: "teal",
-};
-
 export const VISA_LABELS: Record<VisaSponsorship, string> = {
   no: "No",
   maybe: "Maybe",

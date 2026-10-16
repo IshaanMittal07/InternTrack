@@ -308,7 +308,7 @@ export function OpportunityFields({
       <Field
         id={id("linkedin_connection")}
         label="LinkedIn connection"
-        hint="Set to sent when you add a contact. The tag is removed once you message a contact for this posting."
+        hint="Set to sent when you add a contact. Shown as the card's outline color until you message a contact for this posting."
         error={errors.linkedin_connection}
       >
         <select

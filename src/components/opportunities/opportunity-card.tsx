@@ -3,8 +3,6 @@ import Link from "next/link";
 import { TagPill } from "@/components/tags/tag-pill";
 import { Pill } from "@/components/ui/pill";
 import {
-  LINKEDIN_LABELS,
-  LINKEDIN_TONES,
   OUTREACH_LABELS,
   OUTREACH_TONES,
   PRIORITY_LABELS,
@@ -17,12 +15,7 @@ import {
 } from "@/lib/domain/constants";
 import { deadlineLabel, deadlineStatus, formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
 import { HIGHLIGHT_BORDERS } from "@/components/opportunities/highlight";
-import {
-  activeLinkedinConnection,
-  contactProgress,
-  outreachCounts,
-  postingHighlight,
-} from "@/lib/domain/summary";
+import { contactProgress, outreachCounts, postingHighlight } from "@/lib/domain/summary";
 import type { OpportunityWithRelations, Tag } from "@/lib/domain/types";
 
 export function OpportunityCard({
@@ -48,7 +41,6 @@ export function OpportunityCard({
   ).length;
   const progress = contactProgress(o.contacts);
   const outreach = outreachCounts(o.contacts);
-  const linkedin = activeLinkedinConnection(o);
   const highlight = postingHighlight(o);
   const tags = o.tagIds
     .map((id) => tagsById.get(id))
@@ -87,12 +79,10 @@ export function OpportunityCard({
             </Pill>
           )}
           {o.term && <Pill>{o.term}</Pill>}
-          {linkedin && <Pill tone={LINKEDIN_TONES[linkedin]}>{LINKEDIN_LABELS[linkedin]}</Pill>}
-          {o.visa_sponsorship && (
-            <Pill tone={VISA_TONES[o.visa_sponsorship]}>
-              Visa: {VISA_LABELS[o.visa_sponsorship]}
-            </Pill>
-          )}
+          {/* The LinkedIn connection shows in the card's outline color instead. */}
+          <Pill tone={o.visa_sponsorship ? VISA_TONES[o.visa_sponsorship] : "neutral"}>
+            Visa: {o.visa_sponsorship ? VISA_LABELS[o.visa_sponsorship] : "Not checked"}
+          </Pill>
         </div>
 
         {o.posting_notes && (

@@ -138,8 +138,8 @@ export function BookmarkletSetup() {
             can&apos;t be picked twice.
           </li>
           <li>
-            The posting is tagged <strong>LinkedIn: connection sent</strong> (adding any contact
-            does this).
+            The posting&apos;s LinkedIn connection is set to <strong>Connection sent</strong>{" "}
+            (adding any contact does this).
           </li>
         </ul>
       </section>
