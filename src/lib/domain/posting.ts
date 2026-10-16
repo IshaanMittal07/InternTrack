@@ -186,6 +186,39 @@ function parseUrl(source: string): URL | null {
   }
 }
 
+function isLinkedinHost(host: string): boolean {
+  return host === "linkedin.com" || host.endsWith(".linkedin.com");
+}
+
+/**
+ * LinkedIn's public job API URL for a LinkedIn job link, or null. LinkedIn's
+ * job pages only carry a short snippet, but this API has the full description.
+ * Handles `/jobs/view/{id}`, `/jobs/view/{title}-{id}` and `?currentJobId={id}`.
+ */
+export function linkedinJobApiUrl(source: string): string | null {
+  const url = parseUrl(source);
+  if (!url || !isLinkedinHost(url.hostname.toLowerCase())) return null;
+  const id =
+    url.pathname.match(/^\/jobs\/view\/(?:[^/]*-)?(\d+)\/?$/)?.[1] ??
+    url.searchParams.get("currentJobId");
+  if (!id || !/^\d+$/.test(id)) return null;
+  return `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${id}`;
+}
+
+/** Maps LinkedIn's public job API page to posting details. */
+export function parseLinkedinJob(html: string): PostingDetails {
+  const $ = load(html);
+  const result: PostingDetails = {};
+  const company = text($(".topcard__org-name-link").first().text());
+  const role = text($(".top-card-layout__title").first().text());
+  const location = text($(".topcard__flavor--bullet").first().text());
+  if (company) result.company = company;
+  if (role) result.role_title = role;
+  if (location) result.location = location;
+  addDescription(result, $(".show-more-less-html__markup").first().html() ?? undefined, true);
+  return result;
+}
+
 /** Lever's `/apply` page has no job metadata; the posting page itself does. */
 export function leverPostingUrl(source: string): string {
   const url = parseUrl(source);
@@ -374,7 +407,7 @@ export function canonicalPostingUrl(source: string): string {
   url.hash = "";
   const host = url.hostname.toLowerCase();
   const linkedinJob = url.searchParams.get("currentJobId");
-  if ((host === "linkedin.com" || host.endsWith(".linkedin.com")) && linkedinJob) {
+  if (isLinkedinHost(host) && linkedinJob) {
     if (/^\d+$/.test(linkedinJob)) return `https://www.linkedin.com/jobs/view/${linkedinJob}/`;
   }
   for (const key of [...url.searchParams.keys()]) {
@@ -396,8 +429,7 @@ export function detailsFromPageTitle(title: string, source: string): PostingDeta
   const result: PostingDetails = {};
   if (parts[0]) result.role_title = parts[0];
   const host = parseUrl(source)?.hostname.toLowerCase() ?? "";
-  const onLinkedin = host === "linkedin.com" || host.endsWith(".linkedin.com");
-  if (onLinkedin && parts.length >= 3 && /^linkedin$/i.test(parts.at(-1)!)) {
+  if (isLinkedinHost(host) && parts.length >= 3 && /^linkedin$/i.test(parts.at(-1)!)) {
     result.company = parts[1];
   }
   return result;

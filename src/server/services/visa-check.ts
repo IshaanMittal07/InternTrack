@@ -7,6 +7,7 @@ import { classifyVisaSponsorship, type VisaSponsorship } from "@/lib/domain/visa
 import { uuid } from "@/lib/validation/common";
 
 import { dbFailure } from "./errors";
+import { isTemporaryReadFailure } from "./posting-import";
 
 /** Postings checked per call, so each request stays well within time limits. */
 export const VISA_CHECK_BATCH = 5;
@@ -34,9 +35,11 @@ const idsSchema = z.array(uuid).min(1).max(VISA_CHECK_BATCH);
  * Judges visa sponsorship for a few postings from their job description:
  * the posting link is read again (the full description, so saying nothing
  * counts as "maybe"); if it can't be read, only an explicit statement in the
- * saved posting notes counts. When neither tells, the posting stays empty
- * (`visa: null`) rather than guessed. Postings that already have a value,
- * e.g. one set by hand, are never changed.
+ * saved posting notes counts. When neither tells (no link, a closed or
+ * unreadable posting), it is "maybe". Only a temporary failure (rate limit,
+ * timeout) leaves the posting empty (`visa: null`), so it is checked again
+ * next time. Postings that already have a value, e.g. one set by hand, are
+ * never changed.
  */
 export async function checkVisaSponsorship(
   db: Db,
@@ -61,12 +64,15 @@ export async function checkVisaSponsorship(
       if (posting.posting_url) {
         try {
           visa = (await readPosting(posting.posting_url)).visa_sponsorship;
-        } catch {
+        } catch (error) {
+          // Try again next time rather than settle for "maybe".
+          if (isTemporaryReadFailure(error)) return { id: posting.id, visa: null };
           // Unreadable (closed, sign-in only, ...); try the saved notes.
         }
       }
       visa ??= classifyVisaSponsorship(posting.posting_notes ?? "", { complete: false });
-      if (!visa) return { id: posting.id, visa: null };
+      // Nothing says either way.
+      visa ??= "maybe";
 
       const saved = await db
         .from("opportunities")

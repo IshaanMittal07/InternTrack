@@ -6,7 +6,9 @@ import {
   companyFromUrl,
   greenhouseApiUrl,
   leverPostingUrl,
+  linkedinJobApiUrl,
   parseGreenhouseJob,
+  parseLinkedinJob,
   parsePostingHtml,
   parseWorkableAccount,
   parseWorkdaySidebar,
@@ -130,6 +132,57 @@ describe("parseGreenhouseJob", () => {
   it("returns nothing for unexpected data", () => {
     expect(parseGreenhouseJob(null)).toEqual({});
     expect(parseGreenhouseJob([1, 2])).toEqual({});
+  });
+});
+
+describe("linkedinJobApiUrl", () => {
+  it.each([
+    "https://www.linkedin.com/jobs/view/4478829905/",
+    "https://www.linkedin.com/jobs/view/software-engineering-intern-at-acme-4478829905",
+    "https://linkedin.com/jobs/view/4478829905?trk=public_jobs",
+    "https://www.linkedin.com/jobs/collections/recommended/?currentJobId=4478829905",
+  ])("maps %s to the job API", (url) => {
+    expect(linkedinJobApiUrl(url)).toBe(
+      "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/4478829905",
+    );
+  });
+
+  it.each([
+    "https://www.linkedin.com/in/jane/",
+    "https://www.linkedin.com/jobs/search/?keywords=intern",
+    "https://example.com/jobs/view/123",
+    "not a url",
+  ])("ignores %s", (url) => {
+    expect(linkedinJobApiUrl(url)).toBeNull();
+  });
+});
+
+describe("parseLinkedinJob", () => {
+  it("reads company, role, location and the full description", () => {
+    const html = `
+      <h2 class="top-card-layout__title topcard__title">Software Engineering Intern</h2>
+      <a class="topcard__org-name-link topcard__flavor--black-link" href="#">
+        Acme
+      </a>
+      <span class="topcard__flavor topcard__flavor--bullet">
+        San Jose, CA
+      </span>
+      <div class="show-more-less-html__markup">
+        <strong>About Acme<br><br></strong>We build things.<br>
+        <p>Applicants must be authorized to work in the U.S. without sponsorship.</p>
+      </div>`;
+    expect(parseLinkedinJob(html)).toEqual({
+      company: "Acme",
+      role_title: "Software Engineering Intern",
+      location: "San Jose, CA",
+      posting_notes:
+        "About Acme We build things. Applicants must be authorized to work in the U.S. without sponsorship.",
+      visa_sponsorship: "no",
+    });
+  });
+
+  it("returns nothing for a page without a job", () => {
+    expect(parseLinkedinJob("<html><body>Sign in</body></html>")).toEqual({});
   });
 });
 

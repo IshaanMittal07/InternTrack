@@ -8,7 +8,9 @@ import {
   companyFromUrl,
   greenhouseApiUrl,
   leverPostingUrl,
+  linkedinJobApiUrl,
   parseGreenhouseJob,
+  parseLinkedinJob,
   parsePostingHtml,
   parseWorkableAccount,
   parseWorkdaySidebar,
@@ -66,6 +68,32 @@ function assertSafeUrl(url: URL) {
   }
 }
 
+/** A posting that couldn't be read; `temporary` when trying again later may work. */
+export class PostingReadError extends Error {
+  constructor(
+    message: string,
+    readonly temporary: boolean,
+  ) {
+    super(message);
+  }
+}
+
+const TEMPORARY_NETWORK_CODES = new Set([
+  "ECONNRESET",
+  "ECONNREFUSED",
+  "ETIMEDOUT",
+  "EAI_AGAIN",
+  "EPIPE",
+  "ENETUNREACH",
+]);
+
+/** Whether a read failed for a reason that may pass (rate limit, outage, timeout). */
+export function isTemporaryReadFailure(error: unknown): boolean {
+  if (error instanceof PostingReadError) return error.temporary;
+  const code = (error as { code?: unknown } | null)?.code;
+  return typeof code === "string" && TEMPORARY_NETWORK_CODES.has(code);
+}
+
 type Response = { status: number; location?: string; contentType: string; body: string };
 
 /**
@@ -118,7 +146,7 @@ async function getOnce(url: URL, accept: string): Promise<Response> {
       },
     );
     request.setTimeout(8_000, () =>
-      request.destroy(new Error("The posting site took too long to respond.")),
+      request.destroy(new PostingReadError("The posting site took too long to respond.", true)),
     );
     request.on("error", reject);
   });
@@ -134,7 +162,11 @@ async function get(source: string, accept: string): Promise<Response> {
       continue;
     }
     if (response.status !== 200) {
-      throw new Error("The posting site did not return a readable page.");
+      throw new PostingReadError(
+        "The posting site did not return a readable page.",
+        // Rate limited or a server error; a closed posting (404) stays closed.
+        response.status === 429 || (response.status >= 500 && response.status <= 599),
+      );
     }
     return response;
   }
@@ -178,12 +210,33 @@ async function readPosting(source: string): Promise<PostingDetails> {
       // Fall back to reading the page itself.
     }
   }
+  const linkedinUrl = linkedinJobApiUrl(source);
+  if (linkedinUrl) {
+    try {
+      const details = parseLinkedinJob(await fetchPostingHtml(linkedinUrl));
+      if (details.posting_notes) return details;
+    } catch {
+      // Fall back to reading the page itself.
+    }
+  }
   return parsePostingHtml(await fetchPostingHtml(leverPostingUrl(source)));
 }
 
 /**
- * Reads a posting's details. Greenhouse pages carry little metadata, so
- * their public job API is used instead; everything else is read from HTML.
+ * Reads a posting for its description and visa sponsorship. LinkedIn's page
+ * is only a snippet, so its job API is the one source; if that is rate
+ * limited, the error is thrown rather than judging from the snippet.
+ */
+export async function readPostingDescription(source: string): Promise<PostingDetails> {
+  const linkedinUrl = linkedinJobApiUrl(source);
+  if (linkedinUrl) return parseLinkedinJob(await fetchPostingHtml(linkedinUrl));
+  return readPosting(source);
+}
+
+/**
+ * Reads a posting's details. Greenhouse and LinkedIn pages carry little
+ * metadata, so their public job APIs are used instead; everything else is
+ * read from HTML.
  * The company comes from the page, else the site's API, else the link itself.
  */
 export async function fetchPostingDetails(source: string): Promise<PostingDetails> {

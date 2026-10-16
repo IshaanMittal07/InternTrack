@@ -7,7 +7,7 @@ import { requireUser } from "@/lib/auth/session";
 import { todayIn } from "@/lib/domain/dates";
 import { env } from "@/lib/env";
 import * as service from "@/server/services/opportunities";
-import { fetchPostingDetails } from "@/server/services/posting-import";
+import { fetchPostingDetails, readPostingDescription } from "@/server/services/posting-import";
 import { quickSavePosting } from "@/server/services/quick-save";
 import { checkVisaSponsorship, listVisaUnchecked } from "@/server/services/visa-check";
 
@@ -90,7 +90,7 @@ export async function listVisaUncheckedAction() {
 /** Judges visa sponsorship for a batch of postings from their job descriptions. */
 export async function checkVisaSponsorshipAction(ids: string[]) {
   const { supabase, userId } = await requireUser();
-  const result = await checkVisaSponsorship(supabase, userId, ids, fetchPostingDetails);
+  const result = await checkVisaSponsorship(supabase, userId, ids, readPostingDescription);
   if (result.ok) revalidatePath("/");
   return result;
 }

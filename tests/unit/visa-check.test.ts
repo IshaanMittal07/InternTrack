@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { PostingDetails } from "@/lib/domain/posting";
 import type { Db } from "@/lib/domain/types";
+import { PostingReadError } from "@/server/services/posting-import";
 import { checkVisaSponsorship } from "@/server/services/visa-check";
 
 const USER = "11111111-1111-4111-8111-111111111111";
@@ -80,21 +81,52 @@ describe("checkVisaSponsorship", () => {
     );
   });
 
-  it("leaves a posting empty rather than guessing", async () => {
+  it("sets Maybe when nothing tells", async () => {
     const { db, updates } = fakeDb([
       // Readable, but only a meta snippet with no statement.
       { id: id(1), posting_url: "https://jobs.example/1", posting_notes: "Great team." },
-      // Unreadable and no notes.
+      // Closed posting and no notes.
       { id: id(2), posting_url: "https://jobs.example/2", posting_notes: null },
+      // No link at all.
+      { id: id(3), posting_url: null, posting_notes: null },
     ]);
     const read = async (url: string): Promise<PostingDetails> => {
-      if (url.endsWith("/2")) throw new Error("404");
+      if (url.endsWith("/2")) throw new PostingReadError("404", false);
       return { company: "Acme" };
     };
-    const result = await checkVisaSponsorship(db, USER, [id(1), id(2)], read);
+    const result = await checkVisaSponsorship(db, USER, [id(1), id(2), id(3)], read);
+    expect(result.ok && result.data.results).toEqual([
+      { id: id(1), visa: "maybe" },
+      { id: id(2), visa: "maybe" },
+      { id: id(3), visa: "maybe" },
+    ]);
+    expect(updates).toHaveLength(3);
+    for (const u of updates) {
+      expect(u.patch).toEqual({ visa_sponsorship: "maybe" });
+      // Still never overwrites a value.
+      expect(u.filters).toContain("visa_sponsorship is null");
+    }
+  });
+
+  it("leaves a posting empty after a temporary failure, to check again later", async () => {
+    const { db, updates } = fakeDb([
+      // Rate limited, even though the notes say something.
+      { id: id(1), posting_url: "https://jobs.example/1", posting_notes: "No visa sponsorship." },
+      // Timed out.
+      { id: id(2), posting_url: "https://jobs.example/2", posting_notes: null },
+      // Connection reset.
+      { id: id(3), posting_url: "https://jobs.example/3", posting_notes: null },
+    ]);
+    const read = async (url: string): Promise<PostingDetails> => {
+      if (url.endsWith("/1")) throw new PostingReadError("429", true);
+      if (url.endsWith("/2")) throw new PostingReadError("timeout", true);
+      throw Object.assign(new Error("socket hang up"), { code: "ECONNRESET" });
+    };
+    const result = await checkVisaSponsorship(db, USER, [id(1), id(2), id(3)], read);
     expect(result.ok && result.data.results).toEqual([
       { id: id(1), visa: null },
       { id: id(2), visa: null },
+      { id: id(3), visa: null },
     ]);
     expect(updates).toEqual([]);
   });
