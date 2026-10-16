@@ -139,7 +139,7 @@ export function BookmarkletSetup() {
           </li>
           <li>
             The posting is tagged <strong>LinkedIn: connection sent</strong> (adding any contact
-            with a LinkedIn link does this).
+            does this).
           </li>
         </ul>
       </section>

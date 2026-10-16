@@ -35,18 +35,16 @@ export async function createContact(
     .single();
   if (error) return dbFailure(error, "create contact");
 
-  // Adding someone from LinkedIn means a connection request went out, so the
-  // posting is tagged "Connection sent" unless it already is.
-  if (parsed.data.linkedin_url) {
-    const marked = await db
-      .from("opportunities")
-      .update({ linkedin_connection: "sent" })
-      .eq("id", opportunityId.data)
-      .eq("user_id", userId)
-      .or("linkedin_connection.is.null,linkedin_connection.eq.not_sent");
-    // The contact is saved either way; the tag can still be set by hand.
-    if (marked.error) console.error("Failed to mark LinkedIn connection sent", marked.error);
-  }
+  // Adding a contact means a connection request went out, so the posting is
+  // tagged "Connection sent" unless it already is.
+  const marked = await db
+    .from("opportunities")
+    .update({ linkedin_connection: "sent" })
+    .eq("id", opportunityId.data)
+    .eq("user_id", userId)
+    .or("linkedin_connection.is.null,linkedin_connection.eq.not_sent");
+  // The contact is saved either way; the tag can still be set by hand.
+  if (marked.error) console.error("Failed to mark LinkedIn connection sent", marked.error);
   return ok({ id: data.id });
 }
 

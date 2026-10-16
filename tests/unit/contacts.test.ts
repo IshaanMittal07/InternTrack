@@ -45,7 +45,7 @@ function fakeDb() {
 }
 
 describe("createContact", () => {
-  it("tags the posting 'Connection sent' when the contact has a LinkedIn link", async () => {
+  it("tags the posting 'Connection sent' for a contact with a LinkedIn link", async () => {
     const { db, calls } = fakeDb();
     const result = await createContact(db, USER, OPP, {
       name: "Jane",
@@ -61,10 +61,15 @@ describe("createContact", () => {
     ]);
   });
 
-  it("leaves the posting alone for a contact without a LinkedIn link", async () => {
+  it("tags the posting 'Connection sent' for a contact without a LinkedIn link", async () => {
     const { db, calls } = fakeDb();
     const result = await createContact(db, USER, OPP, { name: "Jane" });
     expect(result.ok).toBe(true);
-    expect(calls.patch).toBeUndefined();
+    expect(calls.patch).toEqual({ linkedin_connection: "sent" });
+    expect(calls.filters).toEqual([
+      `id=${OPP}`,
+      `user_id=${USER}`,
+      "or:linkedin_connection.is.null,linkedin_connection.eq.not_sent",
+    ]);
   });
 });

@@ -308,10 +308,13 @@ export function OpportunityFields({
       <Field
         id={id("linkedin_connection")}
         label="LinkedIn connection"
-        hint="The tag is removed once you message a contact for this posting."
+        hint="Set to sent when you add a contact. The tag is removed once you message a contact for this posting."
         error={errors.linkedin_connection}
       >
         <select
+          // Adding a contact can change this while the form is open; remount so
+          // saving the form doesn't put back the old value.
+          key={values.linkedin_connection ?? ""}
           {...aria("linkedin_connection")}
           aria-describedby={
             errors.linkedin_connection
