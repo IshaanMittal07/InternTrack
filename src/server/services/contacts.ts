@@ -87,6 +87,38 @@ export async function setContactSpoken(
   return data.length ? ok() : NOT_FOUND;
 }
 
+/**
+ * Marks whether a message was sent to the contact. Marking it sent keeps a
+ * message already read or replied as it is; unmarking sets it to not sent.
+ */
+export async function setContactMessaged(
+  db: Db,
+  userId: string,
+  rawId: unknown,
+  rawValue: unknown,
+): Promise<ActionResult> {
+  const id = uuid.safeParse(rawId);
+  if (!id.success || typeof rawValue !== "boolean") return NOT_FOUND;
+  const current = await db
+    .from("contacts")
+    .select("outreach_status")
+    .eq("id", id.data)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (current.error) return dbFailure(current.error, "load contact");
+  if (!current.data) return NOT_FOUND;
+  if (rawValue && current.data.outreach_status !== "not_sent") return ok();
+
+  const { data, error } = await db
+    .from("contacts")
+    .update({ outreach_status: rawValue ? "sent" : "not_sent" })
+    .eq("id", id.data)
+    .eq("user_id", userId)
+    .select("id");
+  if (error) return dbFailure(error, "toggle message sent");
+  return data.length ? ok() : NOT_FOUND;
+}
+
 export async function deleteContact(db: Db, userId: string, rawId: unknown): Promise<ActionResult> {
   const id = uuid.safeParse(rawId);
   if (!id.success) return NOT_FOUND;

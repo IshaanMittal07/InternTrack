@@ -35,6 +35,13 @@ export async function setContactSpokenAction(id: string, value: boolean) {
   return result;
 }
 
+export async function setContactMessagedAction(id: string, value: boolean) {
+  const { supabase, userId } = await requireUser();
+  const result = await service.setContactMessaged(supabase, userId, id, value);
+  if (result.ok) revalidatePath("/");
+  return result;
+}
+
 export async function deleteContactAction(id: string) {
   const { supabase, userId } = await requireUser();
   const result = await service.deleteContact(supabase, userId, id);

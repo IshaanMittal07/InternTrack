@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
@@ -10,7 +10,11 @@ import { contactLabel } from "@/lib/domain/contact-label";
 import { formatDate, isFollowUpOverdue } from "@/lib/domain/dates";
 import { contactProgress } from "@/lib/domain/summary";
 import type { Contact } from "@/lib/domain/types";
-import { deleteContactAction, setContactSpokenAction } from "@/server/actions/contacts";
+import {
+  deleteContactAction,
+  setContactMessagedAction,
+  setContactSpokenAction,
+} from "@/server/actions/contacts";
 
 import { ContactForm } from "./contact-form";
 
@@ -61,6 +65,7 @@ export function ContactsSection({
 function ContactItem({ contact, today }: { contact: Contact; today: string }) {
   const [editing, setEditing] = useState(false);
   const [spoken, setSpoken] = useOptimistic(contact.has_spoken);
+  const [messaged, setMessaged] = useOptimistic(contact.outreach_status !== "not_sent");
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const overdue = isFollowUpOverdue(contact.next_follow_up, today);
@@ -71,6 +76,15 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
     startTransition(async () => {
       setSpoken(!spoken);
       const result = await setContactSpokenAction(contact.id, !spoken);
+      if (!result.ok) setError(result.error);
+    });
+  }
+
+  function toggleMessaged() {
+    setError(null);
+    startTransition(async () => {
+      setMessaged(!messaged);
+      const result = await setContactMessagedAction(contact.id, !messaged);
       if (!result.ok) setError(result.error);
     });
   }
@@ -96,18 +110,14 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
             <p className="text-sm text-ink-muted">{contact.title}</p>
           )}
         </div>
-        <button
-          type="button"
-          aria-pressed={spoken}
-          onClick={toggleSpoken}
-          className={`rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors ${
-            spoken
-              ? "bg-success-soft text-success ring-success"
-              : "bg-surface text-ink-muted ring-line-strong hover:text-ink"
-          }`}
-        >
-          {spoken ? "✓ Spoken with" : "Not spoken with yet"}
-        </button>
+        <div className="flex flex-wrap gap-1.5">
+          <ToggleChip pressed={messaged} onClick={toggleMessaged}>
+            {messaged ? "✓ Message sent" : "Message not sent"}
+          </ToggleChip>
+          <ToggleChip pressed={spoken} onClick={toggleSpoken}>
+            {spoken ? "✓ Spoken with" : "Not spoken with yet"}
+          </ToggleChip>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
@@ -132,9 +142,12 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
       </div>
 
       <div className="flex flex-wrap gap-1.5">
-        <Pill tone={OUTREACH_TONES[contact.outreach_status]}>
-          {OUTREACH_LABELS[contact.outreach_status]}
-        </Pill>
+        {/* Sent or not is the toggle above; read and replied are set in Edit. */}
+        {(contact.outreach_status === "read" || contact.outreach_status === "replied") && (
+          <Pill tone={OUTREACH_TONES[contact.outreach_status]}>
+            {OUTREACH_LABELS[contact.outreach_status]}
+          </Pill>
+        )}
         {contact.last_contacted && <Pill>Last contacted {formatDate(contact.last_contacted)}</Pill>}
         {contact.next_follow_up && (
           <Pill tone={overdue ? "danger" : "neutral"}>
@@ -167,5 +180,30 @@ function ContactItem({ contact, today }: { contact: Contact; today: string }) {
         </ConfirmButton>
       </div>
     </li>
+  );
+}
+
+function ToggleChip({
+  pressed,
+  onClick,
+  children,
+}: {
+  pressed: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      onClick={onClick}
+      className={`rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors ${
+        pressed
+          ? "bg-success-soft text-success ring-success"
+          : "bg-surface text-ink-muted ring-line-strong hover:text-ink"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
