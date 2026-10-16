@@ -18,8 +18,9 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 - **Message status per contact:** not sent, sent, read or replied. Cards show each status,
   and the **Messages** filter finds opportunities with a contact at that status.
 - **LinkedIn connection per posting:** mark a posting's LinkedIn connection as sent or
-  unsent in its form; the tag shows on the card and can be filtered, and disappears once
-  you message one of its contacts.
+  unsent in its form; adding a contact to a posting marks it sent automatically. The tag
+  shows on the card and can be filtered, and disappears once you message one of its
+  contacts.
 - **Save to tracker bookmark:** add it once from **Save button** in the header. After
   applying, click it on the job posting and the job is saved under Applied with today's
   date (company, role, location and description filled in when the page has them). A
