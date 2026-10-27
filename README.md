@@ -20,10 +20,11 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 - **LinkedIn connection per posting:** mark a posting's LinkedIn connection as sent or
   unsent in its form; adding a contact to a posting marks it sent automatically. It shows
   as the card's outline color and can be filtered, until you message one of its contacts.
-- **Save to tracker bookmark:** add it once from **Save button** in the header. After
-  applying, click it on the job posting and the job is saved under Applied with today's
-  date (company, role, location and description filled in when the page has them). A
-  posting already in the tracker with the same link is moved to Applied, not duplicated.
+- **Save to tracker bookmark:** add it once from **Save button** in the header. Click it on
+  a job posting, pick Applied, Planning or Interested, and the job is saved there (company,
+  role, location and description filled in when the page has them; Applied ones dated
+  today). A posting already in the tracker with the same link is moved to the picked
+  category, not duplicated, though one already under Applied is never moved out.
 - **Add LinkedIn contact bookmark:** click it on someone's LinkedIn profile and their name,
   profile link and their job title at the posting's company (read from their Experience
   section) are filled in for you. Pick which saved posting they belong to
