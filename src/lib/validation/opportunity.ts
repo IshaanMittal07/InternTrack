@@ -75,9 +75,13 @@ const hint = z.preprocess(
   z.string().optional(),
 );
 
-/** What the "Save to tracker" bookmark sends: the page's link and what it read there. */
+/**
+ * What the "Save to tracker" bookmark sends: the page's link, what it read
+ * there, and the category the user picked (Applied unless they chose another).
+ */
 export const quickSaveSchema = z.object({
   url: optionalUrl.refine((v) => v !== null, "This page has no web link to save"),
+  category: z.enum(CATEGORIES, "Choose a category").default("applied"),
   company: hint,
   role: hint,
   title: hint,

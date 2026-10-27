@@ -11,7 +11,8 @@ function first(value: string | string[] | undefined): string | undefined {
 }
 
 /**
- * With `?url=`, saves that job page as applied (the bookmark opens this).
+ * With `?url=`, asks which category to save that job page under, then saves it
+ * (the bookmark opens this).
  * Without it, explains how to add the bookmark.
  */
 export default async function SavePage({ searchParams }: PageProps<"/save">) {

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import type { ActionResult } from "@/lib/action-result";
 import { requireUser } from "@/lib/auth/session";
+import type { Category } from "@/lib/domain/constants";
 import { todayIn } from "@/lib/domain/dates";
 import { env } from "@/lib/env";
 import * as service from "@/server/services/opportunities";
@@ -67,9 +68,10 @@ export async function setReferralAction(
   return result;
 }
 
-/** Saves the job page the "Save to tracker" bookmark was clicked on, as applied today. */
+/** Saves the job page the "Save to tracker" bookmark was clicked on, under the chosen category. */
 export async function quickSavePostingAction(input: {
   url: string;
+  category: Category;
   company?: string;
   role?: string;
   title?: string;

@@ -5,6 +5,7 @@ import {
   mergePostingDetails,
   type PostingDetails,
 } from "@/lib/domain/posting";
+import type { Category } from "@/lib/domain/constants";
 import type { Db } from "@/lib/domain/types";
 import { quickSaveSchema } from "@/lib/validation/opportunity";
 
@@ -17,15 +18,18 @@ export type QuickSaveResult = {
   id: string;
   company: string;
   role_title: string | null;
+  /** Where the posting is now, which is Applied when it was kept there. */
+  category: Category;
   outcome: QuickSaveOutcome;
 };
 
 export const NEEDS_COMPANY = "Couldn't tell which company this posting is for.";
 
 /**
- * Saves the job page the user just applied on as an Applied opportunity,
- * dated today. A posting already in the tracker under the same link is moved
- * to Applied (or left alone if it is there already) instead of duplicated.
+ * Saves the job page the bookmark was clicked on under the chosen category
+ * (Applied ones dated today). A posting already in the tracker under the same
+ * link is moved there instead of duplicated, except that one already under
+ * Applied is never moved out (that would lose its date and stage).
  * `readPosting` reads the posting's details from its link; when that fails,
  * what the browser saw on the page is used.
  */
@@ -39,6 +43,7 @@ export async function quickSavePosting(
   const parsed = quickSaveSchema.safeParse(input);
   if (!parsed.success) return validationFailed(parsed.error);
   const url = canonicalPostingUrl(parsed.data.url!);
+  const { category } = parsed.data;
 
   const existing = await db
     .from("opportunities")
@@ -50,15 +55,16 @@ export async function quickSavePosting(
 
   if (match) {
     const result = { id: match.id, company: match.company, role_title: match.role_title };
-    const patch = planCategoryMove(match.category, "applied", { today });
-    if (!patch) return ok({ ...result, outcome: "already" });
+    const patch =
+      match.category === "applied" ? null : planCategoryMove(match.category, category, { today });
+    if (!patch) return ok({ ...result, category: match.category, outcome: "already" });
     const { error } = await db
       .from("opportunities")
       .update(patch)
       .eq("id", match.id)
       .eq("user_id", userId);
     if (error) return dbFailure(error, "move opportunity");
-    return ok({ ...result, outcome: "moved" });
+    return ok({ ...result, category, outcome: "moved" });
   }
 
   let fetched: PostingDetails = {};
@@ -78,7 +84,7 @@ export async function quickSavePosting(
   }
 
   const created = await createOpportunity(db, userId, {
-    category: "applied",
+    category,
     company: details.company,
     role_title: details.role_title,
     posting_url: url,
@@ -86,13 +92,14 @@ export async function quickSavePosting(
     posting_notes: details.posting_notes,
     deadline: details.deadline,
     visa_sponsorship: details.visa_sponsorship,
-    date_applied: today,
+    date_applied: category === "applied" ? today : null,
   });
   if (!created.ok) return created;
   return ok({
     id: created.data.id,
     company: details.company,
     role_title: details.role_title ?? null,
+    category,
     outcome: "created",
   });
 }

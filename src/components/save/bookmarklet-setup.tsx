@@ -75,7 +75,7 @@ export function BookmarkletSetup() {
       <div>
         <h1 className="text-3xl font-semibold sm:text-4xl">Save to tracker</h1>
         <p className="mt-1 text-ink-muted">
-          A bookmark that adds the job you just applied to, in one click.
+          A bookmark that adds the job posting you&apos;re looking at to your tracker.
         </p>
       </div>
 
@@ -92,16 +92,17 @@ export function BookmarkletSetup() {
         </h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-ink">
           <li>
-            After you submit an application, go back to the job posting and click{" "}
-            <strong>Save to tracker</strong>. A new tab confirms what was saved.
+            On a job posting, click <strong>Save to tracker</strong>. A new tab asks whether to save
+            it as <strong>Applied</strong>, <strong>Planning</strong> or <strong>Interested</strong>
+            , then confirms what was saved.
           </li>
           <li>
-            It is saved under Applied with today&apos;s date, with the company, role, location and
-            description filled in when the page has them.
+            The company, role, location and description are filled in when the page has them.
+            Applied postings get today&apos;s date.
           </li>
           <li>
-            If the posting is already in your tracker (for example under Planning), it is moved to
-            Applied instead of being added twice.
+            If the posting is already in your tracker, it is moved to the category you pick instead
+            of being added twice. One already under Applied stays there.
           </li>
           <li>
             Click it on the job posting itself rather than the &quot;thanks for applying&quot; page,

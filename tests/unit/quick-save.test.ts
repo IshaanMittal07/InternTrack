@@ -261,7 +261,13 @@ describe("quickSavePosting", () => {
     expect(readPosting).toHaveBeenCalledWith("https://jobs.example.com/1");
     expect(result).toEqual({
       ok: true,
-      data: { id: "new-id", company: "Acme", role_title: "SWE Intern", outcome: "created" },
+      data: {
+        id: "new-id",
+        company: "Acme",
+        role_title: "SWE Intern",
+        category: "applied",
+        outcome: "created",
+      },
     });
     expect(inserts).toHaveLength(1);
     expect(inserts[0]).toMatchObject({
@@ -337,7 +343,13 @@ describe("quickSavePosting", () => {
     );
     expect(result).toEqual({
       ok: true,
-      data: { id: "p1", company: "Acme", role_title: "Intern", outcome: "moved" },
+      data: {
+        id: "p1",
+        company: "Acme",
+        role_title: "Intern",
+        category: "applied",
+        outcome: "moved",
+      },
     });
     expect(updates).toEqual([
       {
@@ -368,10 +380,75 @@ describe("quickSavePosting", () => {
     );
     expect(result).toEqual({
       ok: true,
-      data: { id: "p2", company: "Acme", role_title: null, outcome: "already" },
+      data: {
+        id: "p2",
+        company: "Acme",
+        role_title: null,
+        category: "applied",
+        outcome: "already",
+      },
     });
     expect(updates).toHaveLength(0);
     expect(inserts).toHaveLength(0);
+  });
+
+  it("saves under the chosen category, without a date applied", async () => {
+    const { db, inserts } = fakeDb([]);
+    const result = await quickSavePosting(
+      db,
+      "user-1",
+      { url: "https://jobs.example.com/3", company: "Acme", category: "planning" },
+      today,
+      async () => ({}),
+    );
+    expect(result).toMatchObject({ ok: true, data: { category: "planning", outcome: "created" } });
+    expect(inserts[0]).toMatchObject({
+      category: "planning",
+      date_applied: null,
+      application_stage: null,
+    });
+  });
+
+  it("moves a saved posting between Planning and Interested", async () => {
+    const { db, updates } = fakeDb([
+      {
+        id: "p4",
+        category: "planning",
+        company: "Acme",
+        role_title: null,
+        posting_url: "https://jobs.example.com/4",
+      },
+    ]);
+    const result = await quickSavePosting(
+      db,
+      "user-1",
+      { url: "https://jobs.example.com/4", category: "interested" },
+      today,
+      async () => ({}),
+    );
+    expect(result).toMatchObject({ ok: true, data: { category: "interested", outcome: "moved" } });
+    expect(updates).toEqual([{ id: "p4", patch: { category: "interested" } }]);
+  });
+
+  it("never moves a posting out of Applied", async () => {
+    const { db, updates } = fakeDb([
+      {
+        id: "p5",
+        category: "applied",
+        company: "Acme",
+        role_title: null,
+        posting_url: "https://jobs.example.com/5",
+      },
+    ]);
+    const result = await quickSavePosting(
+      db,
+      "user-1",
+      { url: "https://jobs.example.com/5", category: "planning" },
+      today,
+      async () => ({}),
+    );
+    expect(result).toMatchObject({ ok: true, data: { category: "applied", outcome: "already" } });
+    expect(updates).toHaveLength(0);
   });
 
   it("rejects pages without a web link", async () => {
