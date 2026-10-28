@@ -20,6 +20,9 @@ To deploy your own copy, follow **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 - **LinkedIn connection per posting:** mark a posting's LinkedIn connection as sent or
   unsent in its form; adding a contact to a posting marks it sent automatically. It shows
   as the card's outline color and can be filtered, until you message one of its contacts.
+- **Phone app:** open the tracker in your phone's browser and add it to the home screen
+  (iPhone: Safari's Share button, then **Add to Home Screen**; Android: Chrome's menu, then
+  **Add to Home screen** or **Install app**). It opens full screen with its own icon.
 - **Save to tracker bookmark:** add it once from **Save button** in the header. Click it on
   a job posting, pick Applied, Planning or Interested, and the job is saved there (company,
   role, location and description filled in when the page has them; Applied ones dated
