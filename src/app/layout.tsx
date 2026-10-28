@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   },
   description: "A private notebook for tracking an internship search.",
   robots: { index: false, follow: false, nocache: true },
+  // Home-screen app on iPhone (Android reads src/app/manifest.ts).
+  appleWebApp: { capable: true, title: "InternTrack", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {

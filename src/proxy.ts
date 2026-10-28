@@ -56,7 +56,10 @@ export const config = {
   matcher: [
     {
       // Everything except build assets and public files that need no auth or CSP.
-      source: "/((?!_next/static|_next/image|favicon.ico|icon.svg|robots.txt).*)",
+      // Browsers fetch the app manifest without cookies, so it and its icons
+      // must never be redirected to /login.
+      source:
+        "/((?!_next/static|_next/image|favicon.ico|icon.svg|robots.txt|manifest.webmanifest|icons/).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },
