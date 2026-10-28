@@ -3,7 +3,7 @@ import { expect, type Page } from "@playwright/test";
 import { clearInbox, waitForMagicLink } from "../support/mailpit";
 
 export const OWNER = "owner@test.local";
-export const SENT = "Check your inbox for a sign-in link.";
+export const SENT = "Check your inbox for a sign-in link and code.";
 
 /** Signs in through the real magic-link flow, reading the email from Mailpit. */
 export async function signIn(page: Page, email = OWNER) {

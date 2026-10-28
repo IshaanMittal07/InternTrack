@@ -22,7 +22,7 @@ describe("requestMagicLink", () => {
       const sendLink = vi.fn().mockResolvedValue({ error: null });
       const result = await requestMagicLink({ rawEmail: raw, sendLink, minDurationMs: 0 });
       expect(sendLink).toHaveBeenCalledWith(expected);
-      expect(result).toEqual({ status: "sent", message: SENT_MESSAGE });
+      expect(result).toEqual({ status: "sent", message: SENT_MESSAGE, email: expected });
     }
   });
 
@@ -34,7 +34,7 @@ describe("requestMagicLink", () => {
       sendLink,
       minDurationMs: 0,
     });
-    expect(result).toEqual({ status: "sent", message: SENT_MESSAGE });
+    expect(result).toEqual({ status: "sent", message: SENT_MESSAGE, email: "me@example.com" });
     spy.mockRestore();
   });
 

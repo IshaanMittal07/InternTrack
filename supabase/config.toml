@@ -249,6 +249,13 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# The sign-in email carries both the link and the code (the home-screen app on
+# iPhone signs in with the code). The hosted project's Magic Link template must
+# match this file: Supabase dashboard > Authentication > Emails.
+[auth.email.template.magic_link]
+subject = "Your Internship Tracker sign-in link"
+content_path = "./supabase/templates/magic_link.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { seedDefaultTags } from "@/server/auth/sign-in-code";
 
 /**
  * Magic-link landing route. Exchanges the one-time code for a session (PKCE:
@@ -20,8 +21,7 @@ export async function GET(request: NextRequest) {
     return failure;
   }
 
-  const seeded = await supabase.rpc("seed_default_tags");
-  if (seeded.error) console.error("Seeding default tags failed", seeded.error);
+  await seedDefaultTags(supabase);
 
   return NextResponse.redirect(new URL("/", request.url));
 }

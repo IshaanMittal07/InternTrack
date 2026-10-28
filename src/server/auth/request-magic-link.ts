@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const SENT_MESSAGE = "Check your inbox for a sign-in link.";
+export const SENT_MESSAGE = "Check your inbox for a sign-in link and code.";
 export const INVALID_EMAIL_MESSAGE = "Enter a valid email address.";
 
 /** Emails are compared trimmed and lowercased everywhere. */
@@ -13,7 +13,9 @@ export const loginSchema = z.object({
 });
 
 export type LoginState =
-  { status: "idle" } | { status: "sent"; message: string } | { status: "invalid"; message: string };
+  | { status: "idle" }
+  | { status: "sent"; message: string; email: string }
+  | { status: "invalid"; message: string };
 
 /**
  * Sends a magic link to any valid email (creating the account on first use).
@@ -39,5 +41,5 @@ export async function requestMagicLink({
   })();
 
   await Promise.all([work, delay]);
-  return { status: "sent", message: SENT_MESSAGE };
+  return { status: "sent", message: SENT_MESSAGE, email: parsed.data.email };
 }
